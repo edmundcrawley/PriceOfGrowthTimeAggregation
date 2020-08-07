@@ -1,0 +1,993 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHIP-log\cr-Datacompare-Urban.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 7 Jul 2020, 14:14:03
+{txt}
+{com}. 
+.  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.  * SUMMARY STATISTICS OF URBAN CHNS
+.  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.   use "CHNS-dta-files---final\CHNStrimmed.dta", clear
+{txt}(SAVASTATA created this dataset on 03SEP2012)
+
+{com}.    
+.   * MERGE WITH PRICE DATA
+.           gen   region = "liaoning"     if province == 21
+{txt}(21,647 missing values generated)
+
+{com}.         replace region = "heilongjiang" if province == 23
+{txt}variable {bf}region{sf} was {bf}{res}str8{sf}{txt} now {bf}{res}str12{sf}
+{txt}(1,958 real changes made)
+
+{com}.         replace region = "jiangsu"              if province == 32
+{txt}(3,019 real changes made)
+
+{com}.         replace region = "shandong"     if province == 37
+{txt}(2,671 real changes made)
+
+{com}.         replace region = "henan"                if province == 41
+{txt}(2,756 real changes made)
+
+{com}.         replace region = "hubei"                if province == 42
+{txt}(2,852 real changes made)
+
+{com}.         replace region = "hunan"                if province == 43
+{txt}(2,849 real changes made)
+
+{com}.         replace region = "guangxi"              if province == 45
+{txt}(2,736 real changes made)
+
+{com}.         replace region = "guizhou"              if province == 52
+{txt}(2,806 real changes made)
+
+{com}.         sort urban year region
+{txt}
+{com}.         merge m:1 urban year region using "CHIP-dta-files---final\finprice.dta"
+{res}{txt}{p 0 7 2}
+(note: variable
+region was 
+str12, now str15 to accommodate using data's values)
+{p_end}
+{p 0 7 2}
+(note: variable
+urban was 
+byte, now float to accommodate using data's values)
+{p_end}
+
+{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}           1,124
+{txt}{col 9}from master{col 30}{res}               0{txt}  (_merge==1)
+{col 9}from using{col 30}{res}           1,124{txt}  (_merge==2)
+
+{col 5}matched{col 30}{res}          24,362{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{com}.     assert _merge~=1
+{txt}
+{com}.         drop if _merge~=3
+{txt}(1,124 observations deleted)
+
+{com}.         drop _merge
+{txt}
+{com}.         
+.   * SAMPLE SELECTION IN THE CHNS
+.   keep if urban == 1                    // URBAN SAMPLE
+{txt}(16,585 observations deleted)
+
+{com}.   count
+  {res}7,777
+{txt}
+{com}.   local count0 = string(r(N),"%10.0fc")
+{txt}
+{com}.   keep if age>=25 & age<=65     // HEAD AGE BETWEEN 25 AND 65
+{txt}(0 observations deleted)
+
+{com}.   count
+  {res}7,777
+{txt}
+{com}.   local count1 = string(r(N),"%10.0fc")
+{txt}
+{com}.   keep if educ~=.
+{txt}(0 observations deleted)
+
+{com}.   count
+  {res}7,777
+{txt}
+{com}.   local count2 = string(r(N),"%10.0fc")
+{txt}
+{com}.   keep if food_exp~=. & food_exp~=0
+{txt}(407 observations deleted)
+
+{com}.   count
+  {res}7,370
+{txt}
+{com}.   local count3 = string(r(N),"%10.0fc")
+{txt}
+{com}.   
+.         * MAKE A TABLE ABOUT SAMPLE SELECTION
+.         cap file close _all
+{txt}
+{com}.         file open ofile using "Tables\table_sampleCHNS_Urban.tex", write replace        
+{txt}
+{com}.         file write ofile "\begin{c -(}tabular{c )-}{c -(}l|c{c )-}" _n ///
+>         "\toprule" _n ///
+>         "Operation & No. of obs \\" _n ///
+>         "                  & (HH $\times$ wave) \\" _n ///
+>         "\midrule" _n  ///
+>         " (Initial sample)                                                                                      & `count0'  \\" _n ///
+>         "Drop if head age$<25$ or $>65$                                                         & `count1'      \\" _n ///
+>         "Drop if missing education                                                                      & `count2'      \\" _n ///
+>         "Drop if missing or zero food expenditure                                       & `count3'      \\" _n ///
+>         "\bottomrule" _n ///
+>         "\end{c -(}tabular{c )-}"
+{txt}
+{com}.         file close _all
+{txt}
+{com}.         
+.   
+.   * GENERATE COVARIATES
+.         // COHORT: COH = 1, 2,..., 12.
+.         gen     cohort_aux = birthyear
+{txt}
+{com}.         gen     coh = 1  if cohort_aux >= 1980 & cohort_aux ~=.
+{txt}(7,364 missing values generated)
+
+{com}.         replace coh = 2  if cohort_aux >= 1975 & cohort_aux <= 1979
+{txt}(94 real changes made)
+
+{com}.         replace coh = 3  if cohort_aux >= 1970 & cohort_aux <= 1974
+{txt}(335 real changes made)
+
+{com}.         replace coh = 4  if cohort_aux >= 1965 & cohort_aux <= 1969
+{txt}(642 real changes made)
+
+{com}.         replace coh = 5  if cohort_aux >= 1960 & cohort_aux <= 1964
+{txt}(1,153 real changes made)
+
+{com}.         replace coh = 6  if cohort_aux >= 1955 & cohort_aux <= 1959
+{txt}(1,187 real changes made)
+
+{com}.         replace coh = 7  if cohort_aux >= 1950 & cohort_aux <= 1954
+{txt}(1,249 real changes made)
+
+{com}.         replace coh = 8  if cohort_aux >= 1945 & cohort_aux <= 1949
+{txt}(886 real changes made)
+
+{com}.         replace coh = 9  if cohort_aux >= 1940 & cohort_aux <= 1944
+{txt}(623 real changes made)
+
+{com}.         replace coh = 10 if cohort_aux >= 1935 & cohort_aux <= 1939
+{txt}(526 real changes made)
+
+{com}.         replace coh = 11 if cohort_aux >= 1930 & cohort_aux <= 1934
+{txt}(432 real changes made)
+
+{com}.         replace coh = 12 if cohort_aux <= 1929 & cohort_aux ~=.
+{txt}(237 real changes made)
+
+{com}.         // AGE AND AGE SQUARED
+.         gen     age2=age^2
+{txt}
+{com}.         // REGION: REGION = 2, 3, 4, 5.
+.                 rename region region_aux
+{res}{txt}
+{com}.                 // HUA BEI DI QU (NORTH REGION)
+.                 gen             region = 1 if region_aux == "beijing" | region_aux == "tianjin" | region_aux == "hebei" | region_aux == "shanxi" |  region_aux == "innermongolia"
+{txt}(7,370 missing values generated)
+
+{com}.                 // DONG BEI DI QU (NORTH-EAST REGION)
+.                 replace region = 2 if region_aux == "liaoning" |  region_aux == "jilin" | region_aux == "heilongjiang" | region_aux == "dalian"  
+{txt}(1,369 real changes made)
+
+{com}.                 // HUA DONG DI QU (EAST REGION)
+.                 replace region = 3 if region_aux == "shanghai" | region_aux == "jiangsu" | region_aux == "zhejiang" | region_aux == "anhui" | region_aux == "fujian" | region_aux == "jiangxi" | region_aux == "shandong" | region_aux == "ningbo" | region_aux == "xiamen" | region_aux == "qingdao"
+{txt}(1,628 real changes made)
+
+{com}.                 // ZHONG NAN DI QU (CENTER-SOUTH REGION)
+.                 replace region = 4 if region_aux == "henan" | region_aux == "hubei" | region_aux == "hunan" | region_aux == "guangdong" | region_aux == "guangxi" | region_aux == "hainan" | region_aux == "shenzhen"
+{txt}(3,476 real changes made)
+
+{com}.                 // XI NAN DI QU (SOUTH-WEST REGION)
+.                 replace region = 5 if region_aux == "chongqing" | region_aux == "sichuan" | region_aux == "guizhou" | region_aux == "yunnan" | region_aux == "tibet" 
+{txt}(897 real changes made)
+
+{com}.                 // XI BEI DI QU (NORTH-WEST REGION)
+.                 replace region = 6 if region_aux == "shaanxi" | region_aux == "gansu" | region_aux == "qinghai" | region_aux == "ningxia" | region_aux == "xinjiang"
+{txt}(0 real changes made)
+
+{com}.                 
+.         // NUMBER OF CHILDREN: KIDCAT = 0, 1, 2, 3.
+.         gen kidcat = numi_lt_15
+{txt}
+{com}.         replace kidcat = 3 if kidcat>3 & kidcat~=.  // ONLY 5 OBS HAVE 4 CHILDREN
+{txt}(5 real changes made)
+
+{com}.         // EDUCATION: EDUC = 0, 1, 2.
+.         
+.   * EXPENDITURES
+.         * CONVERT THE FOOD_EXP FROM USD IN CONSTANT 2009 PRICE TO RMB IN CONSTANT 2000 PRICE
+.         gen  pall2009_aux1 = pall if year == 2009
+{txt}(6,412 missing values generated)
+
+{com}.         bys province (year): egen pall2009_aux2 = max(pall2009_aux1)
+{txt}
+{com}.         replace food_exp = food_exp/pall2009_aux2*100*6.8300
+{txt}(7,370 real changes made)
+
+{com}.         gen lq  = ln(food_exp*pall/pf)
+{txt}
+{com}.   
+.   gen dataset = 1
+{txt}
+{com}.   label define A2data 1 "CHNS" 2 "CHIP"
+{txt}
+{com}.   label values dataset A2data
+{txt}
+{com}.   gen           year_cp = 1 if year == 1989 | year == 1991
+{txt}(5,499 missing values generated)
+
+{com}.   replace       year_cp = 2 if year == 1997 | year == 1993
+{txt}(1,674 real changes made)
+
+{com}.   replace   year_cp = 3 if year == 2004 | year == 2000
+{txt}(1,890 real changes made)
+
+{com}.   replace       year_cp = 4 if year == 2009 | year == 2006
+{txt}(1,935 real changes made)
+
+{com}.   drop *_aux*
+{txt}
+{com}.   saveold "CHIP-dta-files---final\Datacompare-Urban.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file CHIP-dta-files---final\Datacompare-Urban.dta saved
+
+{com}.   
+.  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.  * SUMMARY STATISTICS OF URBAN CHIP
+.  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.   use "CHIP-dta-files---final\CHIPU.dta", clear
+{txt}
+{com}.   
+.   * WE DON'T HAVE PRICE DATA FOR 1988, MATCH CHIP 1988 WITH THE 1989 PRICE DATA
+.   replace year = 1989 if year == 1988
+{txt}(8,953 real changes made)
+
+{com}.   
+.   * MERGE WITH PRICE DATA
+.         sort urban year region
+{txt}
+{com}.         merge m:1 urban year region using "CHIP-dta-files---final\finprice.dta"
+{res}{txt}{p 0 7 2}
+(note: variable
+region was 
+str9, now str15 to accommodate using data's values)
+{p_end}
+
+{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}           1,218
+{txt}{col 9}from master{col 30}{res}               0{txt}  (_merge==1)
+{col 9}from using{col 30}{res}           1,218{txt}  (_merge==2)
+
+{col 5}matched{col 30}{res}          19,014{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{com}.     assert _merge~=1
+{txt}
+{com}.         drop if _merge~=3
+{txt}(1,218 observations deleted)
+
+{com}.         drop _merge
+{txt}
+{com}.   replace year = 1988 if year == 1989
+{txt}(8,953 real changes made)
+
+{com}.         
+.   * SAMPLE SELECTION IN THE CHIP
+.   keep if urban == 1                            // URBAN SAMPLE
+{txt}(0 observations deleted)
+
+{com}.   count
+  {res}19,014
+{txt}
+{com}.   local count0 = string(r(N),"%10.0fc")
+{txt}
+{com}.   keep if hh_age>=25 & hh_age<=65       // HEAD AGE BETWEEN 25 AND 60
+{txt}(560 observations deleted)
+
+{com}.   count
+  {res}18,454
+{txt}
+{com}.   local count1 = string(r(N),"%10.0fc")
+{txt}
+{com}.   keep if hh_education~=.
+{txt}(69 observations deleted)
+
+{com}.   count
+  {res}18,385
+{txt}
+{com}.   local count2 = string(r(N),"%10.0fc")
+{txt}
+{com}.   drop if region=="beijing" | region=="shanxi" | region=="gansu"
+{txt}(3,599 observations deleted)
+
+{com}.   count
+  {res}14,786
+{txt}
+{com}.   local count3 = string(r(N),"%10.0fc")
+{txt}
+{com}.   keep if food_exp~=. & food_exp~=0
+{txt}(11 observations deleted)
+
+{com}.   count
+  {res}14,775
+{txt}
+{com}.   local count4 = string(r(N),"%10.0fc")
+{txt}
+{com}.         * MAKE A TABLE ABOUT SAMPLE SELECTION
+.         cap file close _all
+{txt}
+{com}.         file open ofile using "Tables\table_sampleCHIP_Urban.tex", write replace        
+{txt}
+{com}.         file write ofile "\begin{c -(}tabular{c )-}{c -(}l|c{c )-}" _n ///
+>         "\toprule" _n ///
+>         "Operation & No. of obs \\" _n ///
+>         "                  & (HH $\times$ wave) \\" _n ///
+>         "\midrule" _n  ///
+>         " (Initial sample)                                                                                      & `count0'  \\" _n ///
+>         "Drop if head age$<25$ or $>65$                                                         & `count1'      \\" _n ///
+>         "Drop if missing education                                                                      & `count2'      \\" _n ///
+>         "Drop Beijing, Shanxi and Gansu                                                         & `count3'  \\" _n ///
+>         "Drop if missing or zero food expenditure                                       & `count4'      \\" _n ///
+>         "\bottomrule" _n ///
+>         "\end{c -(}tabular{c )-}"
+{txt}
+{com}.         file close _all
+{txt}
+{com}.         
+.   * GENERATE COVARIATES
+.         // COHORT: COH = 1, 2,..., 12.
+.         gen     cohort_aux = year-hh_age
+{txt}
+{com}.     gen         coh = 1  if cohort_aux >= 1980 & cohort_aux ~=.
+{txt}(14,717 missing values generated)
+
+{com}.         replace coh = 2  if cohort_aux >= 1975 & cohort_aux <= 1979
+{txt}(303 real changes made)
+
+{com}.         replace coh = 3  if cohort_aux >= 1970 & cohort_aux <= 1974
+{txt}(662 real changes made)
+
+{com}.         replace coh = 4  if cohort_aux >= 1965 & cohort_aux <= 1969
+{txt}(1,160 real changes made)
+
+{com}.         replace coh = 5  if cohort_aux >= 1960 & cohort_aux <= 1964
+{txt}(2,116 real changes made)
+
+{com}.         replace coh = 6  if cohort_aux >= 1955 & cohort_aux <= 1959
+{txt}(2,668 real changes made)
+
+{com}.         replace coh = 7  if cohort_aux >= 1950 & cohort_aux <= 1954
+{txt}(2,732 real changes made)
+
+{com}.         replace coh = 8  if cohort_aux >= 1945 & cohort_aux <= 1949
+{txt}(1,798 real changes made)
+
+{com}.         replace coh = 9  if cohort_aux >= 1940 & cohort_aux <= 1944
+{txt}(1,193 real changes made)
+
+{com}.         replace coh = 10 if cohort_aux >= 1935 & cohort_aux <= 1939
+{txt}(1,018 real changes made)
+
+{com}.         replace coh = 11 if cohort_aux >= 1930 & cohort_aux <= 1934
+{txt}(617 real changes made)
+
+{com}.         replace coh = 12 if cohort_aux <= 1929 & cohort_aux ~=.
+{txt}(450 real changes made)
+
+{com}.         
+.         // AGE AND AGE SQUARED
+.         gen             age = hh_age
+{txt}
+{com}.         gen     age2=age^2
+{txt}
+{com}.         
+.         // REGION: REGION = 1, 2, 3, 4, 5, 6.
+.                 rename region region_aux
+{res}{txt}
+{com}.                 // HUA BEI DI QU (NORTH REGION)
+.                 gen             region = 1 if region_aux == "beijing" | region_aux == "tianjing" | region_aux == "hebei" | region_aux == "shanxi" |  region_aux == "innermongolia"
+{txt}(14,775 missing values generated)
+
+{com}.                 // DONG BEI DI QU (NORTH-EAST REGION)
+.                 replace region = 2 if region_aux == "liaoning" |  region_aux == "jilin" | region_aux == "heilongjiang" | region_aux == "dalian"  
+{txt}(1,680 real changes made)
+
+{com}.                 // HUA DONG DI QU (EAST REGION)
+.                 replace region = 3 if region_aux == "shanghai" | region_aux == "jiangsu" | region_aux == "zhejiang" | region_aux == "anhui" | region_aux == "fujian" | region_aux == "jiangxi" | region_aux == "shandong" | region_aux == "ningbo" | region_aux == "xiamen" | region_aux == "qingdao"
+{txt}(4,177 real changes made)
+
+{com}.                 // ZHONG NAN DI QU (CENTER-SOUTH REGION)
+.                 replace region = 4 if region_aux == "henan" | region_aux == "hubei" | region_aux == "hunan" | region_aux == "guangdong" | region_aux == "guangxi" | region_aux == "hainan" | region_aux == "shenzhen"
+{txt}(5,795 real changes made)
+
+{com}.                 // XI NAN DI QU (SOUTH-WEST REGION)
+.                 replace region = 5 if region_aux == "chongqing" | region_aux == "sichuan" | region_aux == "guizhou" | region_aux == "yunnan" | region_aux == "tibet" 
+{txt}(3,123 real changes made)
+
+{com}.                 // XI BEI DI QU (NORTH-WEST REGION)
+.                 replace region = 6 if region_aux == "shaanxi" | region_aux == "gansu" | region_aux == "qinghai" | region_aux == "ningxia" | region_aux == "xinjiang"
+{txt}(0 real changes made)
+
+{com}. 
+.         // NUMBER OF CHILDREN: KIDCAT = 0, 1, 2, 3.
+.         gen kidcat = hh_children
+{txt}
+{com}.         replace kidcat = 3 if kidcat>3 & kidcat~=. // 1 OBS HAS 4 CHILDREN
+{txt}(1 real change made)
+
+{com}.         
+.         // EDUCATION: EDUC = 0, 1, 2.
+.                 * 1988
+.                 gen             educ = 0 if hh_education==8  & year == 1988
+{txt}(14,673 missing values generated)
+
+{com}.                 replace educ = 1 if hh_education>=5  & hh_education<=7 & year == 1988
+{txt}(3,282 real changes made)
+
+{com}.                 replace educ = 2 if hh_education>=1  & hh_education<=4 & year == 1988
+{txt}(3,107 real changes made)
+
+{com}.                 * 1995
+.                 replace educ = 0 if hh_education>=7  & hh_education<=8 & year ==1995
+{txt}(20 real changes made)
+
+{com}.                 replace educ = 1 if hh_education>=5  & hh_education<=6 & year ==1995
+{txt}(1,181 real changes made)
+
+{com}.                 replace educ = 2 if hh_education>=1  & hh_education<=4 & year ==1995
+{txt}(2,293 real changes made)
+
+{com}.                 * 2002, 2007
+.                 replace educ = 0 if hh_education>=1  & hh_education<=2 & year >=2002
+{txt}(9 real changes made)
+
+{com}.                 replace educ = 1 if hh_education>=3  & hh_education<=4 & year >=2002
+{txt}(1,145 real changes made)
+
+{com}.                 replace educ = 2 if hh_education>=5  & hh_education<=9 & year >=2002
+{txt}(3,636 real changes made)
+
+{com}.                 
+.         
+.   * EXPENDITURES
+.   gen lq  = ln(food_exp/(pf/100))               // AT 2000 CONSTANT FOOD PRICE
+{txt}
+{com}.   gen dataset = 2
+{txt}
+{com}.   label define A2data 1 "CHNS" 2 "CHIP"
+{txt}
+{com}.   label values dataset A2data
+{txt}
+{com}.   gen           year_cp = 1 if year == 1988
+{txt}(8,284 missing values generated)
+
+{com}.   replace       year_cp = 2 if year == 1995
+{txt}(3,494 real changes made)
+
+{com}.   replace   year_cp = 3 if year == 2002
+{txt}(2,691 real changes made)
+
+{com}.   replace       year_cp = 4 if year == 2007
+{txt}(2,099 real changes made)
+
+{com}.   drop *_aux
+{txt}
+{com}.   
+.   *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.   * APPEND CHIP TO CHNS
+.   *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.   append using "CHIP-dta-files---final\Datacompare-Urban.dta"
+{txt}{p 0 7 2}
+(note: variable
+age was 
+float, now double to accommodate using data's values)
+{p_end}
+{p 0 7 2}
+(note: variable
+province was 
+float, now double to accommodate using data's values)
+{p_end}
+(label A2data already defined)
+
+{com}.   saveold "CHIP-dta-files---final\Datacompare-Urban.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file CHIP-dta-files---final\Datacompare-Urban.dta saved
+
+{com}.   
+.   *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.   * MAKE A TABLE OF COMPARISON
+.   *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.    keep if year_cp~=.
+{txt}(0 observations deleted)
+
+{com}.    keep if region >=2 & region<=6
+{txt}(0 observations deleted)
+
+{com}.    misstable sum year region kidcat educ hh_size age lq
+{txt}(variables nonmissing or string)
+
+{com}.    gen          educ0 = (educ==0)
+{txt}
+{com}.    gen          educ1 = (educ==1)
+{txt}
+{com}.    gen          educ2 = (educ==2)
+{txt}
+{com}.    replace      educ0 = educ0*100
+{txt}(603 real changes made)
+
+{com}.    replace      educ1 = educ1*100
+{txt}(8,978 real changes made)
+
+{com}.    replace      educ2 = educ2*100
+{txt}(12,564 real changes made)
+
+{com}.    gen          region2 = (region==2)
+{txt}
+{com}.    gen          region3 = (region==3)
+{txt}
+{com}.    gen          region4 = (region==4)
+{txt}
+{com}.    gen          region5 = (region==5)
+{txt}
+{com}.    replace      region2 = region2*100
+{txt}(3,049 real changes made)
+
+{com}.    replace      region3 = region3*100
+{txt}(5,805 real changes made)
+
+{com}.    replace      region4 = region4*100
+{txt}(9,271 real changes made)
+
+{com}.    replace      region5 = region5*100
+{txt}(4,020 real changes made)
+
+{com}.    
+.    labe  var age                "Age"
+{txt}
+{com}.    label var hh_size    "HH size"
+{txt}
+{com}.    label var kidcat             "No. of children"   
+{txt}
+{com}.    label var educ0              "No education (\%)"
+{txt}
+{com}.    label var educ1              "Below 9th grade (\%)"
+{txt}
+{com}.    label var educ2              "Above 9th grade (\%)"
+{txt}
+{com}.    label var region2    "North-eastern (\%)"
+{txt}
+{com}.    label var region3    "Eastern (\%)"
+{txt}
+{com}.    label var region4    "Center-southern (\%)"
+{txt}
+{com}.    label var region5    "South-western (\%)"
+{txt}
+{com}.    label var lq                 "Log food expenditure"
+{txt}
+{com}. 
+.   cap file close _all
+{txt}
+{com}.   file open ofile using "Tables\table_impute_compare_Urban.tex", write replace  
+{txt}
+{com}.   file write ofile "\begin{c -(}tabular{c )-}{c -(}l|c c|c c|c c|c c{c )-}" _n ///
+>         "\toprule" _n ///
+>         "Data & CHIP & CHNS & CHIP & CHNS & CHIP & CHNS & CHIP & CHNS \\" _n ///
+>         "Wave & 1988 & 1989, 1991 & 1995 & 1993, 1997 & 2002 & 2000, 2004 & 2007 & 2006, 2009 \\" _n ///
+>         "\midrule" _n
+{txt}
+{com}.   foreach var in age hh_size kidcat educ0 educ1 educ2 region2 region3 region4 region5 lq {c -(}
+{txt}  2{com}.         local label`var': variable label `var'
+{txt}  3{com}.         forvalues d=1/2 {c -(}
+{txt}  4{com}.                 forvalues t=1/4 {c -(}
+{txt}  5{com}.                         sum `var' if year_cp == `t' & dataset == `d'
+{txt}  6{com}.                         local mean`t'_d`d'=string(r(mean),"%10.2f")
+{txt}  7{com}.                         local sd`t'_d`d'  =string(r(sd),"%10.2f")
+{txt}  8{com}.                 {c )-}
+{txt}  9{com}.         {c )-}
+{txt} 10{com}.         file write ofile " `label`var'' & `mean1_d2' & `mean1_d1' & `mean2_d2' & `mean2_d1' & `mean3_d2' & `mean3_d1' & `mean4_d2' & `mean4_d1'  \\" _n ///
+>                                          "              & (`sd1_d2') & (`sd1_d1') & (`sd2_d2') & (`sd2_d1') & (`sd3_d2') & (`sd3_d1') & (`sd4_d2') & (`sd4_d1')  \\" _n
+{txt} 11{com}.   {c )-}
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      1,871    44.69963    11.49985         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      1,674    45.14516    10.67108         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      1,890    46.26455    9.836023         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      1,935    48.28734    8.944163         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      6,491    42.89108    9.588016         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      3,494    41.08271    7.401749         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      2,691    41.49684    6.709443         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 9}age {c |}{res}      2,099    40.85898    7.560252         25         65
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      1,871    3.911812    1.100911          2          6
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      1,674     3.78853    1.074382          2          6
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      1,890     3.46455    .9939267          2          6
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      1,935    3.466667    1.087581          2          6
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      6,491    3.558003    .9881355          1          8
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      3,494    3.193761    .6285105          2          8
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      2,691    3.063545    .5791077          2          7
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}hh_size {c |}{res}      2,099    3.087661    .6671762          2          6
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      1,871      .81721    .7477188          0          3
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      1,674     .688172    .7107852          0          3
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      1,890    .4359788    .5713994          0          3
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      1,935    .2764858    .4987472          0          3
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      6,491    .7498074    .6442453          0          3
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      3,494    .6296508    .5458555          0          3
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      2,691    .5213675    .5250319          0          2
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 6}kidcat {c |}{res}      2,099    .5212006    .5461568          0          3
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      1,871    13.30839    33.97562          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      1,674    8.243728    27.51119          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      1,890    3.227513    17.67766          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      1,935     1.24031     11.0705          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      6,491    1.571407    12.43765          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      3,494    .5724098    7.545172          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      2,691    .1114827    3.337661          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ0 {c |}{res}      2,099    .2858504    5.340123          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      1,871    51.20257     49.9989          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      1,674    46.23656    49.87306          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      1,890    43.49206    49.58778          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      1,935    42.17054    49.39596          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      6,491    50.56232    50.00069          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      3,494     33.8008     47.3099          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      2,691    25.64103    43.67321          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ1 {c |}{res}      2,099    21.67699    41.21427          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      1,871    35.48904     47.8608          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      1,674    45.51971    49.81375          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      1,890    53.28042    49.90548          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      1,935    56.58915    49.57674          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      6,491    47.86628     49.9583          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      3,494    65.62679     47.5021          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      2,691    74.24749    43.73523          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 7}educ2 {c |}{res}      2,099    78.03716    41.40935          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      1,871    13.84286    34.54417          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      1,674     13.5006    34.18321          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      1,890    23.12169    42.17224          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      1,935    23.10078    42.15863          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      6,491    13.23371     33.8883          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      3,494    13.88094     34.5797          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      2,691    12.48606    33.06223          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region2 {c |}{res}      2,099           0           0          0          0
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      1,871     24.1582    42.81567          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      1,674    22.93907    42.05666          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      1,890    20.68783    40.51747          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      1,935    20.72351    40.54302          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      6,491    29.07102     45.4125          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      3,494    22.18088    41.55227          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      2,691    20.58714    40.44121          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region3 {c |}{res}      2,099    45.78371    49.83378          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      1,871    49.27846    50.00816          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      1,674    51.19474    50.00066          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      1,890    44.12698    49.66702          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      1,935    44.59948    49.72034          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      6,491    43.69126    49.60422          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      3,494    34.31597    47.48322          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      2,691      37.644    48.45825          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region4 {c |}{res}      2,099    35.58838    47.88943          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      1,871    12.72047    33.32912          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      1,674    12.36559     32.9287          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      1,890    12.06349    32.57887          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      1,935    11.57623    32.00223          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      6,491    14.00401    34.70553          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      3,494    29.62221    45.66555          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      2,691    29.28279    45.51447          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 5}region5 {c |}{res}      2,099    18.62792    38.94246          0        100
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      1,871    8.311208     .644839   6.066472   9.568838
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      1,674    8.736149    .5485452   7.168917   9.958222
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      1,890    8.687024     .611227   7.035357   10.11202
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      1,935    8.519253    .6461128   6.394163   9.774185
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      6,491    7.742474    .5027771     3.8147   9.634196
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      3,494     8.70547    .4152659   6.657457   11.23332
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      2,691    8.774781    .4715535   6.127439   10.86524
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+{space 10}lq {c |}{res}      2,099    9.187001    .6092786   6.923904   11.21277
+{txt}
+{com}.   file write ofile "\bottomrule" _n
+{txt}
+{com}.   file write ofile "\multicolumn{c -(}9{c )-}{c -(}p{c -(}5in{c )-}{c )-}{c -(}\footnotesize \textit{c -(}Note{c )-}: Standard deviations in parentheses.{c )-}" _n
+{txt}
+{com}. 
+.   file write ofile "\end{c -(}tabular{c )-}"
+{txt}
+{com}.   file close _all
+{txt}
+{com}.   saveold "CHIP-dta-files---final\Datacompare-Urban.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file CHIP-dta-files---final\Datacompare-Urban.dta saved
+
+{com}.   
+.   log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHIP-log\cr-Datacompare-Urban.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 7 Jul 2020, 14:14:03
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

@@ -1,0 +1,1226 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHNS-log\CHNSbootpanel.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 7 Jul 2020, 14:14:55
+{txt}
+{com}.   
+.                 use "CHNS-dta-files---final\CHNSimp.dta", clear
+{txt}(SAVASTATA created this dataset on 03SEP2012)
+
+{com}.                 rename year interview_year
+{res}{txt}
+{com}.                 drop dataset year_cp lq
+{txt}
+{com}.                 gen  dataimp = 1
+{txt}
+{com}.                 
+.                 * GENERATE IMPUTED CONSUMPTION
+.                 gen consumption3 = exp(lx1_imp)
+{txt}
+{com}.                 gen consumption4 = exp(lx2_imp)
+{txt}
+{com}.                 gen consumption5 = exp(lx3_imp)
+{txt}
+{com}.                 
+.                 label var consumption3 "imputed nondurable consumption (narrow definition)"
+{txt}
+{com}.                 label var consumption4 "imputed nondurable consumption (loose definition)"
+{txt}
+{com}.                 label var consumption5 "imputed consumption"
+{txt}
+{com}.                 drop lx*_imp
+{txt}
+{com}.                 merge 1:1 case_id interview_year using "CHNS-dta-files---final\CHNStrimmed.dta"
+{res}{txt}{p 0 7 2}
+(note: variable
+interview_year was 
+int, now double to accommodate using data's values)
+{p_end}
+{p 0 7 2}
+(note: variable
+case_id was 
+int, now float to accommodate using data's values)
+{p_end}
+
+{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}          16,752
+{txt}{col 9}from master{col 30}{res}               0{txt}  (_merge==1)
+{col 9}from using{col 30}{res}          16,752{txt}  (_merge==2)
+
+{col 5}matched{col 30}{res}           7,610{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{com}.                 assert _merge==3 | _merge==2
+{txt}
+{com}.                 keep if _merge==3 | _merge==2
+{txt}(0 observations deleted)
+
+{com}.                 drop _merge
+{txt}
+{com}.                 
+.                 
+.                 **********************************************
+.                 * CONSTRUCT ADULT-EQUIVALENT MEASURES
+.                 **********************************************
+.                 * Compute equivalence scales
+.                         gen equiv_KP       =  (numi_geq_15 +  .7*numi_lt_15)^(.7) /* These are the NAS scales used by Krueger and Perri ReStud who cite . If you read that reference you will find they refer to page 59 in "Measuring Poverty, A New Approach" published by the National Academy of Sciencies (NAS) scales. "                                                                                                                                                                                  It is Also used by Heathcote, Storesletten, and Violante JPE (Consumption Insurance and Labor Supply) */        
+{txt}
+{com}.                         gen numi_15_60 = numi_geq_15-numi_gt_60
+{txt}
+{com}.                         gen equiv_ad   = numi_geq_15
+{txt}
+{com}.                         gen equiv_ad2  = numi_15_60
+{txt}
+{com}. 
+.                 * Compute adult-equivalent income
+.                         gen consumption0_KP = consumption0 /equiv_KP
+{txt}(487 missing values generated)
+
+{com}.                         gen consumption1_KP = consumption1 /equiv_KP
+{txt}(986 missing values generated)
+
+{com}.                         gen consumption2_KP = consumption2 /equiv_KP
+{txt}(990 missing values generated)
+
+{com}.                         gen consumption3_KP = consumption3 /equiv_KP
+{txt}(16,752 missing values generated)
+
+{com}.                         gen consumption4_KP = consumption4 /equiv_KP
+{txt}(16,752 missing values generated)
+
+{com}.                         gen consumption5_KP = consumption5 /equiv_KP
+{txt}(16,752 missing values generated)
+
+{com}.                         gen consumption6_KP = consumption6 /equiv_KP
+{txt}(986 missing values generated)
+
+{com}.                         gen consumption7_KP = consumption7 /equiv_KP
+{txt}(986 missing values generated)
+
+{com}.                         gen consumption8_KP = consumption8 /equiv_KP
+{txt}(7,044 missing values generated)
+
+{com}.                         
+.                         gen income0_ad2 = income0 /equiv_ad2
+{txt}(1,986 missing values generated)
+
+{com}.                         gen income1_ad2 = income1 /equiv_ad2
+{txt}(797 missing values generated)
+
+{com}.                         gen income2_ad2 = income2 /equiv_ad2
+{txt}(1,316 missing values generated)
+
+{com}.                         gen income3_ad2 = income3 /equiv_ad2
+{txt}(963 missing values generated)
+
+{com}.                         gen income4_ad2 = income4 /equiv_ad2
+{txt}(1,041 missing values generated)
+
+{com}.                         
+.                 keep    income0                         income1                 income2                 income3                         income4                         ///
+>                                 income0_ad2             income1_ad2             income2_ad2             income3_ad2             income4_ad2             ///
+>                                 consumption0            consumption1            consumption2            consumption3            consumption4            consumption5            ///
+>                                 consumption0_KP         consumption1_KP         consumption2_KP         consumption3_KP         consumption4_KP         consumption5_KP     ///
+>                                 consumption6            consumption7            consumption8            ///
+>                                 consumption6_KP         consumption7_KP         consumption8_KP         ///
+>                                 hh_size                         equiv_KP                        equiv_ad2                       dep_ratio_weak          numi_lt_15                      numi_geq_15             ///
+>                                 age                             case_id                         relation2head           cohort                          wave                            interview_year          ///
+>                                 reside                          educ                            province                        commid                          birthplace                      sex                             ///
+>                                 ethnicity                       hukou                           cadre_hh                        minority                        marital_status          pri_occu                        ///
+>                                 pri_posi                        pri_type                        stable                          house_value             house_area
+{txt}
+{com}.          
+.                 foreach var in  income0                         income1                 income2                 income3                         income4                         ///
+>                                                 income0_ad2             income1_ad2             income2_ad2             income3_ad2                     income4_ad2                     ///
+>                                                 consumption0            consumption1            consumption2            consumption6            consumption7            consumption8            ///
+>                                                 consumption0_KP         consumption1_KP         consumption2_KP         consumption6_KP         consumption7_KP         consumption8_KP         {c -(}
+{txt}  2{com}.                                 gen `var'_Urban = `var' if reside==0
+{txt}  3{com}.                                 gen `var'_Rural = `var' if reside==1
+{txt}  4{com}.                                 drop `var'
+{txt}  5{com}.                 {c )-}
+{txt}(17,880 missing values generated)
+(8,290 missing values generated)
+(16,743 missing values generated)
+(8,108 missing values generated)
+(17,232 missing values generated)
+(8,190 missing values generated)
+(16,849 missing values generated)
+(8,183 missing values generated)
+(16,914 missing values generated)
+(8,199 missing values generated)
+(17,907 missing values generated)
+(8,441 missing values generated)
+(16,890 missing values generated)
+(8,269 missing values generated)
+(17,330 missing values generated)
+(8,348 missing values generated)
+(16,986 missing values generated)
+(8,339 missing values generated)
+(17,048 missing values generated)
+(8,355 missing values generated)
+(16,742 missing values generated)
+(8,107 missing values generated)
+(16,904 missing values generated)
+(8,444 missing values generated)
+(16,907 missing values generated)
+(8,445 missing values generated)
+(16,904 missing values generated)
+(8,444 missing values generated)
+(16,904 missing values generated)
+(8,444 missing values generated)
+(18,273 missing values generated)
+(13,133 missing values generated)
+(16,742 missing values generated)
+(8,107 missing values generated)
+(16,904 missing values generated)
+(8,444 missing values generated)
+(16,907 missing values generated)
+(8,445 missing values generated)
+(16,904 missing values generated)
+(8,444 missing values generated)
+(16,904 missing values generated)
+(8,444 missing values generated)
+(18,273 missing values generated)
+(13,133 missing values generated)
+
+{com}.                 foreach var in  consumption3            consumption4            consumption5                    ///
+>                                                 consumption3_KP         consumption4_KP         consumption5_KP                 {c -(}
+{txt}  2{com}.                                 rename `var' `var'_Urban        // IMPUTATION IS DONE ONLY FOR URBAN HOUSEHOLDS (FOR THE MEASURE THAT INCLUDES IMPUTED HOUSING RENTS, ONLY URBAN IS RELIABLE)
+{txt}  3{com}.                 {c )-}               
+{res}{txt}
+{com}.                 sort wave
+{txt}
+{com}.                 
+.                 foreach var in  income0_Rural                           income1_Rural                   income2_Rural                           income3_Rural                           income4_Rural                           ///
+>                                                 income0_ad2_Rural                       income1_ad2_Rural               income2_ad2_Rural                       income3_ad2_Rural                       income4_ad2_Rural                       ///
+>                                                 consumption0_Rural                      consumption1_Rural      consumption2_Rural                      consumption6_Rural                      consumption7_Rural                      ///
+>                                                 consumption0_KP_Rural           consumption1_KP_Rural   consumption2_KP_Rural           consumption6_KP_Rural           consumption7_KP_Rural           ///
+>                                                 income0_Urban                           income1_Urban                   income2_Urban                           income3_Urban                           income4_Urban                           ///
+>                                                 income0_ad2_Urban                       income1_ad2_Urban               income2_ad2_Urban                       income3_ad2_Urban                       income4_ad2_Urban                       ///
+>                                                 consumption0_Urban                      consumption1_Urban      consumption2_Urban                      consumption3_Urban                      consumption4_Urban                      ///
+>                                                 consumption0_KP_Urban           consumption1_KP_Urban   consumption2_KP_Urban           consumption3_KP_Urban           consumption4_KP_Urban           ///
+>                                                 consumption5_Urban                      consumption6_Urban              consumption7_Urban                      consumption8_Urban                      ///
+>                                                 consumption5_KP_Urban           consumption6_KP_Urban   consumption7_KP_Urban           consumption8_KP_Urban           {c -(}
+{txt}  2{com}.                                 
+.                                 gen ln`var'=ln(`var')
+{txt}  3{com}.                                 
+.                 {c )-}
+{txt}(9,138 missing values generated)
+(8,273 missing values generated)
+(8,519 missing values generated)
+(8,669 missing values generated)
+(8,780 missing values generated)
+(9,254 missing values generated)
+(8,432 missing values generated)
+(8,669 missing values generated)
+(8,815 missing values generated)
+(8,924 missing values generated)
+(8,118 missing values generated)
+(8,444 missing values generated)
+(8,445 missing values generated)
+(8,444 missing values generated)
+(8,444 missing values generated)
+(8,118 missing values generated)
+(8,444 missing values generated)
+(8,445 missing values generated)
+(8,444 missing values generated)
+(8,444 missing values generated)
+(17,880 missing values generated)
+(16,743 missing values generated)
+(17,232 missing values generated)
+(16,849 missing values generated)
+(16,954 missing values generated)
+(17,907 missing values generated)
+(16,890 missing values generated)
+(17,330 missing values generated)
+(16,986 missing values generated)
+(17,087 missing values generated)
+(16,752 missing values generated)
+(16,904 missing values generated)
+(16,907 missing values generated)
+(16,752 missing values generated)
+(16,752 missing values generated)
+(16,752 missing values generated)
+(16,904 missing values generated)
+(16,907 missing values generated)
+(16,752 missing values generated)
+(16,752 missing values generated)
+(16,752 missing values generated)
+(16,904 missing values generated)
+(16,904 missing values generated)
+(18,273 missing values generated)
+(16,752 missing values generated)
+(16,904 missing values generated)
+(16,904 missing values generated)
+(18,273 missing values generated)
+
+{com}.                 
+.                 
+.                 ***************************************************************
+.                 * SAVE DTA FILES THAT WILL BE CALLED BY THE BOOTSTRAP ROUTINE
+.                 ***************************************************************
+.                 * TO BE SAVED IN THE "STRUCTURAL MODEL\BASELINE DATA\"
+.                 
+.                         // RURAL: BASELINE: DISPOSABLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Rural lnconsumption1_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Rural) & missing(lnconsumption1_KP_Rural)
+{txt}(7,812 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec1.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec1.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: BASELINE: DISPOSABLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption1_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption1_KP_Urban)
+{txt}(16,602 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec2.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec2.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // RURAL: EARNINGS AND PUCLIC TRANSFERS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome3_ad2_Rural lnconsumption1_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome3_ad2_Rural) & missing(lnconsumption1_KP_Rural)
+{txt}(7,842 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome3_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec3.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec3.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: EARNINGS AND PUCLIC TRANSFERS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome3_ad2_Urban lnconsumption1_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome3_ad2_Urban) & missing(lnconsumption1_KP_Urban)
+{txt}(16,613 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome3_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec4.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec4.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // RURAL: EARNINGS AND PRIVATE TRANSFERS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome2_ad2_Rural lnconsumption1_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome2_ad2_Rural) & missing(lnconsumption1_KP_Rural)
+{txt}(7,819 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome2_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec5.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec5.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: EARNINGS AND PRIVATE TRANSFERS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome2_ad2_Urban lnconsumption1_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome2_ad2_Urban) & missing(lnconsumption1_KP_Urban)
+{txt}(16,613 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome2_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec6.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec6.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // RURAL: EARNINGS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome0_ad2_Rural lnconsumption1_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome0_ad2_Rural) & missing(lnconsumption1_KP_Rural)
+{txt}(7,861 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome0_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec7.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec7.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: EARNINGS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome0_ad2_Urban lnconsumption1_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome0_ad2_Urban) & missing(lnconsumption1_KP_Urban)
+{txt}(16,652 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome0_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec8.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec8.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // RURAL: EARNINGS AND CASH PUBLIC TRANSFERS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS MINUS IN-KIND SUBSIDIES
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome4_ad2_Rural lnconsumption2_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome4_ad2_Rural) & missing(lnconsumption2_KP_Rural)
+{txt}(7,846 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome4_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption2_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec9.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec9.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: EARNINGS AND CASH PUBLIC TRANSFERS + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS MINUS IN-KIND SUBSIDIES
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome4_ad2_Urban lnconsumption2_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome4_ad2_Urban) & missing(lnconsumption2_KP_Urban)
+{txt}(16,617 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome4_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption2_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec10.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec10.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // RURAL: DISPOSABLE INCOME + FOOD CONSUMPTION IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Rural lnconsumption0_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Rural) & missing(lnconsumption0_KP_Rural)
+{txt}(7,792 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption0_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec11.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec11.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: DISPOSABLE INCOME + FOOD CONSUMPTION IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption0_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption0_KP_Urban)
+{txt}(16,593 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption0_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec12.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec12.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                         
+.                         // RURAL: DISPOSABLE INCOME + FOOD AND UTILITY CONSUMPTION IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Rural lnconsumption6_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Rural) & missing(lnconsumption6_KP_Rural)
+{txt}(7,806 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption6_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec13.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec13.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                         
+.                         // URBAN: DISPOSABLE INCOME + FOOD AND UTILITY CONSUMPTION IN CHNS 
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption6_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption6_KP_Urban)
+{txt}(16,605 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption6_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec14.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec14.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                         
+.                         // RURAL: DISPOSABLE INCOME + FOOD, UTILITY AND HEALTH CONSUMPTION IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Rural lnconsumption7_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Rural) & missing(lnconsumption7_KP_Rural)
+{txt}(7,808 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption7_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec15.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec15.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                         
+.                         // URBAN: DISPOSABLE INCOME + FOOD, UTILITY AND HEALTH CONSUMPTION IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption7_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption7_KP_Urban)
+{txt}(16,604 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption7_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Baseline_Data\dydc_spec16.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Baseline_Data\dydc_spec16.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                 
+.                 
+.                 * TO BE SAVED IN THE "STRUCTURAL MODEL\EXTRA DATA\"
+.                         // RURAL HUKOU: DISPOSBLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS MINUS IN-KIND SUBSIDIES
+.                                 gen     lnincome1_ad2           = lnincome1_ad2_Rural
+{txt}(8,432 missing values generated)
+
+{com}.                                 replace lnincome1_ad2           = lnincome1_ad2_Urban           if lnincome1_ad2==.
+{txt}(7,472 real changes made)
+
+{com}.                                 gen             lnconsumption1_KP       = lnconsumption1_KP_Rural
+{txt}(8,444 missing values generated)
+
+{com}.                                 replace lnconsumption1_KP       = lnconsumption1_KP_Urban       if lnconsumption1_KP==.
+{txt}(7,458 real changes made)
+
+{com}.                                 
+.                                 bys case_id (interview): egen max_hukou = max(hukou)
+{txt}(641 missing values generated)
+
+{com}.                                 bys case_id (interview): egen min_hukou = min(hukou)
+{txt}(641 missing values generated)
+
+{com}.                                 gen hukou_constant = (max_hukou==min_hukou)
+{txt}
+{com}.                                 
+.                                 preserve
+{txt}
+{com}.                                 keep if hukou == 1 & hukou_constant == 1
+{txt}(12,125 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2 lnconsumption1_KP sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2) & missing(lnconsumption1_KP)
+{txt}(24 observations deleted)
+
+{com}.                                         
+.                                 rename lnincome1_ad2            logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP        logc
+{res}{txt}
+{com}.                                         
+.                                 saveold  "Structural-Model\Extra_Data\dydc_spec1.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Extra_Data\dydc_spec1.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN HUKOU: DISPOSBLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS MINUS IN-KIND SUBSIDIES
+.                                 preserve
+{txt}
+{com}.                                 keep if hukou == 0 & hukou_constant == 1
+{txt}(15,926 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2 lnconsumption1_KP sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2) & missing(lnconsumption1_KP)
+{txt}(16 observations deleted)
+
+{com}.                                         
+.                                 rename lnincome1_ad2            logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP        logc
+{res}{txt}
+{com}.                                         
+.                                 saveold  "Structural-Model\Extra_Data\dydc_spec2.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Extra_Data\dydc_spec2.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                                 drop hukou_constant max_hukou min_hukou
+{txt}
+{com}.                         
+.                         // NON-FARM SOE WORKERS IN PRE-1997 PERIOD: DISPOSBLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS MINUS IN-KIND SUBSIDIES
+.                                 gen     state = 1 if (pri_type == 1 | pri_type == 3)
+{txt}(18,738 missing values generated)
+
+{com}.                                 replace state = 0 if (pri_type == 2 | pri_type == 5 | pri_type == 6 | pri_type == 7)
+{txt}(5,807 real changes made)
+
+{com}.                                 bys case_id (interview_year): egen minstate = min(state)
+{txt}(6,102 missing values generated)
+
+{com}.                                 bys case_id (interview_year): egen maxstate = max(state)
+{txt}(6,102 missing values generated)
+
+{com}.                                 gen allstate = (minstate==1)
+{txt}
+{com}.                                 gen nvrstate = (maxstate==0)
+{txt}
+{com}.                                 gen swtstate = (minstate<maxstate & minstate==0 & maxstate==1)
+{txt}
+{com}.                                 bys case_id (interview_year): egen minyear = min(interview_year)
+{txt}
+{com}.                                 gen tagobs = (minyear<=1997 & minyear~=.)
+{txt}
+{com}.                                 
+.                                 preserve
+{txt}
+{com}.                                 keep if allstate == 1 & tagobs == 1
+{txt}(20,083 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2 lnconsumption1_KP sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2) & missing(lnconsumption1_KP)
+{txt}(6 observations deleted)
+
+{com}.                                         
+.                                 rename lnincome1_ad2            logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP        logc
+{res}{txt}
+{com}.                                         
+.                                 saveold  "Structural-Model\Extra_Data\dydc_spec3.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Extra_Data\dydc_spec3.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                                 preserve
+{txt}
+{com}.                                 keep if swtstate == 1 & tagobs == 1
+{txt}(21,288 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2 lnconsumption1_KP sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2) & missing(lnconsumption1_KP)
+{txt}(9 observations deleted)
+
+{com}.                                         
+.                                 rename lnincome1_ad2            logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP        logc
+{res}{txt}
+{com}.                                         
+.                                 saveold  "Structural-Model\Extra_Data\dydc_spec4.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Extra_Data\dydc_spec4.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                                 preserve
+{txt}
+{com}.                                 keep if nvrstate == 1 & tagobs == 1
+{txt}(16,219 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2 lnconsumption1_KP sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2) & missing(lnconsumption1_KP)
+{txt}(19 observations deleted)
+
+{com}.                                         
+.                                 rename lnincome1_ad2            logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP        logc
+{res}{txt}
+{com}.                                         
+.                                 saveold  "Structural-Model\Extra_Data\dydc_spec5.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Extra_Data\dydc_spec5.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                                 drop allstate nvrstate swtstate state minstate maxstate tagobs minyear
+{txt}
+{com}.                         
+.                         
+.                         // FAST-GROWING RURAL COMMUNITIES: DISPOSABLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep if reside == 1
+{txt}(7,777 observations deleted)
+
+{com}.                                 keep interview_year case_id commid income1_ad2_Rural
+{txt}
+{com}.                                 bys interview_year commid (case_id): egen m_com_income = mean(income1_ad2_Rural)
+{txt}
+{com}.                                 keep interview_year commid m_com_income
+{txt}
+{com}.                                 duplicates drop
+
+{p 0 4}{txt}Duplicates in terms of {txt} all variables{p_end}
+
+(15,498 observations deleted)
+
+{com}.                                 bys commid (interview_year): gen d_year = interview_year - interview_year[_n-1]
+{txt}(149 missing values generated)
+
+{com}.                                 bys commid (interview_year): gen ratio_income = m_com_income/m_com_income[_n-1]
+{txt}(149 missing values generated)
+
+{com}.                                 bys commid (interview_year): gen annualgrowth = ratio_income^(1/d_year)-1
+{txt}(149 missing values generated)
+
+{com}.                                 bys commid (interview_year): egen avg_growth = mean(annualgrowth)
+{txt}
+{com}.                                 keep commid avg_growth
+{txt}
+{com}.                                 duplicates drop
+
+{p 0 4}{txt}Duplicates in terms of {txt} all variables{p_end}
+
+(938 observations deleted)
+
+{com}.                                 sum avg_growth, d
+
+                         {txt}avg_growth
+{hline 61}
+      Percentiles      Smallest
+ 1%    {res}  -.03576      -.0548103
+{txt} 5%    {res}-.0029863        -.03576
+{txt}10%    {res} .0093713      -.0170675       {txt}Obs         {res}        149
+{txt}25%    {res} .0316411      -.0124087       {txt}Sum of Wgt. {res}        149
+
+{txt}50%    {res} .0544532                      {txt}Mean          {res}  .065572
+                        {txt}Largest       Std. Dev.     {res} .0584688
+{txt}75%    {res} .0880346       .2719228
+{txt}90%    {res} .1166951       .2907583       {txt}Variance      {res} .0034186
+{txt}95%    {res} .1597158       .3279106       {txt}Skewness      {res}  2.00757
+{txt}99%    {res} .3279106       .3314339       {txt}Kurtosis      {res} 9.351603
+{txt}
+{com}.                                 gen     fastgrowth = 1 if avg_growth > r(p50) & avg_growth~=.
+{txt}(75 missing values generated)
+
+{com}.                                 replace fastgrowth = 0 if avg_growth <= r(p50) & avg_growth~=.
+{txt}(75 real changes made)
+
+{com}.                                 keep commid fastgrowth
+{txt}
+{com}.                                 sort commid
+{txt}
+{com}.                                 saveold "CHNS-dta-files---final\CHNSfastgrowth_Rural.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+(note: file CHNS-dta-files---final\CHNSfastgrowth_Rural.dta not found)
+file CHNS-dta-files---final\CHNSfastgrowth_Rural.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                                 preserve
+{txt}
+{com}.                                 keep if reside == 1
+{txt}(7,777 observations deleted)
+
+{com}.                                 merge m:1 commid using "CHNS-dta-files---final\CHNSfastgrowth_Rural.dta", update
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}               0
+
+{txt}{col 5}matched{col 30}{res}          16,585
+{txt}{col 9}not updated{col 30}{res}          16,585{txt}  (_merge==3)
+{col 9}missing updated{col 30}{res}               0{txt}  (_merge==4)
+{col 9}nonmissing conflict{col 30}{res}               0{txt}  (_merge==5)
+{col 5}{hline 41}
+
+{com}.                                 assert _merge == 3
+{txt}
+{com}.                                 drop _merge
+{txt}
+{com}.                                 keep if fastgrowth == 1
+{txt}(8,611 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Rural lnconsumption1_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Rural) & missing(lnconsumption1_KP_Rural)
+{txt}(13 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Extra_Data\dydc_spec6.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Extra_Data\dydc_spec6.dta saved
+
+{com}.                                 restore 
+{txt}
+{com}.                         
+.                         // SLOW-GROWING RURAL COMMUNITIES: DISPOSABLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS
+.                                 preserve
+{txt}
+{com}.                                 keep if reside == 1
+{txt}(7,777 observations deleted)
+
+{com}.                                 merge m:1 commid using "CHNS-dta-files---final\CHNSfastgrowth_Rural.dta", update
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}               0
+
+{txt}{col 5}matched{col 30}{res}          16,585
+{txt}{col 9}not updated{col 30}{res}          16,585{txt}  (_merge==3)
+{col 9}missing updated{col 30}{res}               0{txt}  (_merge==4)
+{col 9}nonmissing conflict{col 30}{res}               0{txt}  (_merge==5)
+{col 5}{hline 41}
+
+{com}.                                 assert _merge == 3
+{txt}
+{com}.                                 drop _merge
+{txt}
+{com}.                                 keep if fastgrowth == 0
+{txt}(7,974 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Rural lnconsumption1_KP_Rural sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Rural) & missing(lnconsumption1_KP_Rural)
+{txt}(22 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Rural              logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Rural  logc
+{res}{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Extra_Data\dydc_spec7.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Extra_Data\dydc_spec7.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 erase "CHNS-dta-files---final\CHNSfastgrowth_Rural.dta"
+{txt}
+{com}.                         
+.                 
+.                 * TO BE SAVED IN THE "STRUCTURAL MODEL\IMPUTED DATA\"
+.                         // URBAN: DISPOSABLE INCOME + ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS, FOR OBS WHOSE IMPUTED CONSUMPTION IS NONMISSING
+.                                 preserve
+{txt}
+{com}.                                 keep if lnincome1_ad2_Urban~=. | lnconsumption3_KP_Urban~=.
+{txt}(16,593 observations deleted)
+
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption1_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption1_KP_Urban)
+{txt}(9 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban               logy
+{res}{txt}
+{com}.                                 rename lnconsumption1_KP_Urban  logc
+{res}{txt}
+{com}. 
+.                                 tsset case_id interview_year
+{res}{txt}{col 8}panel variable:  {res}case_id (unbalanced)
+{txt}{col 9}time variable:  {res}{col 25}interview_y~r, 1989 to 2009, but with gaps
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Imputed_Data\dydc_imp0.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Imputed_Data\dydc_imp0.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: DISPOSABLE INCOME + IMPUTED NONDURABLE CONSUMPTION (NARROW DEFINITION)
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption3_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption3_KP_Urban)
+{txt}(16,593 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban               logy
+{res}{txt}
+{com}.                                 rename lnconsumption3_KP_Urban  logc
+{res}{txt}
+{com}.                                 
+.                                 tsset case_id interview_year
+{res}{txt}{col 8}panel variable:  {res}case_id (unbalanced)
+{txt}{col 9}time variable:  {res}{col 25}interview_y~r, 1989 to 2009, but with gaps
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Imputed_Data\dydc_imp1.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Imputed_Data\dydc_imp1.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: DISPOSABLE INCOME + IMPUTED NONDURABLE CONSUMPTION (WIDE DEFINITION)
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption4_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption4_KP_Urban)
+{txt}(16,593 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption4_KP_Urban  logc
+{res}{txt}
+{com}. 
+.                                 tsset case_id interview_year
+{res}{txt}{col 8}panel variable:  {res}case_id (unbalanced)
+{txt}{col 9}time variable:  {res}{col 25}interview_y~r, 1989 to 2009, but with gaps
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Imputed_Data\dydc_imp2.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Imputed_Data\dydc_imp2.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: DISPOSABLE INCOME + IMPUTED CONSUMPTION
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption5_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption5_KP_Urban)
+{txt}(16,593 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption5_KP_Urban  logc
+{res}{txt}
+{com}. 
+.                                 tsset case_id interview_year
+{res}{txt}{col 8}panel variable:  {res}case_id (unbalanced)
+{txt}{col 9}time variable:  {res}{col 25}interview_y~r, 1989 to 2009, but with gaps
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Imputed_Data\dydc_imp3.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Imputed_Data\dydc_imp3.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                                 
+.                         // URBAN: DISPOSABLE INCOME +  ALL CONSUMPTION CONSISTENTLY SURVEYED IN CHNS AND IMPUTED HOUSING SERVICE
+.                                 preserve
+{txt}
+{com}.                                 keep wave interview_year case_id lnincome1_ad2_Urban lnconsumption8_KP_Urban sex educ province minority cohort
+{txt}
+{com}.                                 drop if missing(lnincome1_ad2_Urban) & missing(lnconsumption8_KP_Urban)
+{txt}(16,657 observations deleted)
+
+{com}.                                 
+.                                 rename lnincome1_ad2_Urban              logy
+{res}{txt}
+{com}.                                 rename lnconsumption8_KP_Urban  logc
+{res}{txt}
+{com}. 
+.                                 tsset case_id interview_year
+{res}{txt}{col 8}panel variable:  {res}case_id (unbalanced)
+{txt}{col 9}time variable:  {res}{col 25}interview_y~r, 1989 to 2009, but with gaps
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}.                                 
+.                                 saveold  "Structural-Model\Imputed_Data\dydc_imp4.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file Structural-Model\Imputed_Data\dydc_imp4.dta saved
+
+{com}.                                 restore
+{txt}
+{com}.                 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHNS-log\CHNSbootpanel.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 7 Jul 2020, 14:14:57
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

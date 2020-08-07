@@ -1,0 +1,544 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHNS-log\cr-CHNSimp.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 7 Jul 2020, 14:14:54
+{txt}
+{com}.  
+.  use "CHNS-dta-files---final\CHNStrimmed.dta", clear
+{txt}(SAVASTATA created this dataset on 03SEP2012)
+
+{com}.   gen mergeid = 1
+{txt}
+{com}.  
+.  * GENERATE RELEVANT VARIABLES
+.         // COHORT AND AGE
+.         replace birthyear  = cohort   if birthyear==.  // ONE MISSING BIRTHYEAR
+{txt}(1 real change made)
+
+{com}.         gen     cohort_aux = birthyear
+{txt}
+{com}.         gen     coh = 1  if cohort_aux >= 1980 & cohort_aux ~=.
+{txt}(24,328 missing values generated)
+
+{com}.         replace coh = 2  if cohort_aux >= 1975 & cohort_aux <= 1979
+{txt}(334 real changes made)
+
+{com}.         replace coh = 3  if cohort_aux >= 1970 & cohort_aux <= 1974
+{txt}(1,328 real changes made)
+
+{com}.         replace coh = 4  if cohort_aux >= 1965 & cohort_aux <= 1969
+{txt}(2,353 real changes made)
+
+{com}.         replace coh = 5  if cohort_aux >= 1960 & cohort_aux <= 1964
+{txt}(3,865 real changes made)
+
+{com}.         replace coh = 6  if cohort_aux >= 1955 & cohort_aux <= 1959
+{txt}(4,170 real changes made)
+
+{com}.         replace coh = 7  if cohort_aux >= 1950 & cohort_aux <= 1954
+{txt}(4,225 real changes made)
+
+{com}.         replace coh = 8  if cohort_aux >= 1945 & cohort_aux <= 1949
+{txt}(3,228 real changes made)
+
+{com}.         replace coh = 9  if cohort_aux >= 1940 & cohort_aux <= 1944
+{txt}(2,023 real changes made)
+
+{com}.         replace coh = 10 if cohort_aux >= 1935 & cohort_aux <= 1939
+{txt}(1,362 real changes made)
+
+{com}.         replace coh = 11 if cohort_aux >= 1930 & cohort_aux <= 1934
+{txt}(948 real changes made)
+
+{com}.         replace coh = 12 if cohort_aux <= 1929 & cohort_aux ~=.
+{txt}(492 real changes made)
+
+{com}.         gen     age2=age^2
+{txt}
+{com}.         // REGION
+.         gen     region = "liaoning"     if province == 21
+{txt}(21,647 missing values generated)
+
+{com}.         replace region = "heilongjiang" if province == 23
+{txt}variable {bf}region{sf} was {bf}{res}str8{sf}{txt} now {bf}{res}str12{sf}
+{txt}(1,958 real changes made)
+
+{com}.         replace region = "jiangsu"              if province == 32
+{txt}(3,019 real changes made)
+
+{com}.         replace region = "shandong"     if province == 37
+{txt}(2,671 real changes made)
+
+{com}.         replace region = "henan"                if province == 41
+{txt}(2,756 real changes made)
+
+{com}.         replace region = "hubei"                if province == 42
+{txt}(2,852 real changes made)
+
+{com}.         replace region = "hunan"                if province == 43
+{txt}(2,849 real changes made)
+
+{com}.         replace region = "guangxi"              if province == 45
+{txt}(2,736 real changes made)
+
+{com}.         replace region = "guizhou"              if province == 52
+{txt}(2,806 real changes made)
+
+{com}.         
+.                 * MERGE WITH PRICE DATA (NEED TO USE REGION AS AN IDENTIFIER)
+.                 sort year region
+{txt}
+{com}.                 merge m:1 year region urban using "CHIP-dta-files---final\finprice.dta"
+{res}{txt}{p 0 7 2}
+(note: variable
+region was 
+str12, now str15 to accommodate using data's values)
+{p_end}
+{p 0 7 2}
+(note: variable
+urban was 
+byte, now float to accommodate using data's values)
+{p_end}
+
+{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}           1,124
+{txt}{col 9}from master{col 30}{res}               0{txt}  (_merge==1)
+{col 9}from using{col 30}{res}           1,124{txt}  (_merge==2)
+
+{col 5}matched{col 30}{res}          24,362{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{com}.                 tab year _merge
+
+           {txt}{c |}        _merge
+      year {c |} using onl  matched ( {c |}     Total
+{hline 11}{c +}{hline 22}{c +}{hline 10}
+      1989 {c |}{res}        44      3,090 {txt}{c |}{res}     3,134 
+{txt}      1990 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      1991 {c |}{res}        44      2,948 {txt}{c |}{res}     2,992 
+{txt}      1992 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      1993 {c |}{res}        44      2,707 {txt}{c |}{res}     2,751 
+{txt}      1994 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      1995 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      1996 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      1997 {c |}{res}        44      2,901 {txt}{c |}{res}     2,945 
+{txt}      1998 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      1999 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      2000 {c |}{res}        42      3,207 {txt}{c |}{res}     3,249 
+{txt}      2001 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      2002 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      2003 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      2004 {c |}{res}        42      3,242 {txt}{c |}{res}     3,284 
+{txt}      2005 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      2006 {c |}{res}        42      3,156 {txt}{c |}{res}     3,198 
+{txt}      2007 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      2008 {c |}{res}        60          0 {txt}{c |}{res}        60 
+{txt}      2009 {c |}{res}        42      3,111 {txt}{c |}{res}     3,153 
+{txt}{hline 11}{c +}{hline 22}{c +}{hline 10}
+     Total {c |}{res}     1,124     24,362 {txt}{c |}{res}    25,486 
+{txt}
+{com}.                 drop if _merge!=3
+{txt}(1,124 observations deleted)
+
+{com}.                 drop _merge
+{txt}
+{com}.         
+.         gen     region_aux = region
+{txt}
+{com}.         drop    region
+{txt}
+{com}.         gen             region = 1 if region_aux == "beijing" | region_aux == "tianjing" | region_aux == "hebei" | region_aux == "shanxi" |  region_aux == "innermongolia"
+{txt}(24,362 missing values generated)
+
+{com}.         // DONG BEI DI QU (NORTH-EAST REGION)
+.         replace region = 2 if region_aux == "liaoning" |  region_aux == "jilin" | region_aux == "heilongjiang" | region_aux == "dalian"  
+{txt}(4,673 real changes made)
+
+{com}.         // HUA DONG DI QU (EAST REGION)
+.         replace region = 3 if region_aux == "shanghai" | region_aux == "jiangsu" | region_aux == "zhejiang" | region_aux == "anhui" | region_aux == "fujian" | region_aux == "jiangxi" | region_aux == "shandong" | region_aux == "ningbo" | region_aux == "xiamen" | region_aux == "qingdao"
+{txt}(5,690 real changes made)
+
+{com}.         // ZHONG NAN DI QU (CENTER-SOUTH REGION)
+.         replace region = 4 if region_aux == "henan" | region_aux == "hubei" | region_aux == "hunan" | region_aux == "guangdong" | region_aux == "guangxi" | region_aux == "hainan" | region_aux == "shenzhen"
+{txt}(11,193 real changes made)
+
+{com}.         // XI NAN DI QU (SOUTH-WEST REGION)
+.         replace region = 5 if region_aux == "chongqing" | region_aux == "sichuan" | region_aux == "guizhou" | region_aux == "yunnan" | region_aux == "tibet" 
+{txt}(2,806 real changes made)
+
+{com}.         // XI BEI DI QU (NORTH-WEST REGION)
+.         replace region = 6 if region_aux == "shaanxi" | region_aux == "gansu" | region_aux == "qinghai" | region_aux == "ningxia" | region_aux == "xinjiang"
+{txt}(0 real changes made)
+
+{com}.     
+.         // NUMBER OF CHILDREN
+.         gen kidcat = numi_lt_15
+{txt}
+{com}.         replace kidcat = 3 if kidcat>=3 & kidcat~=.
+{txt}(61 real changes made)
+
+{com}.         
+.         // PRICES
+.     foreach var in pf palc ptran pfutil {c -(}
+{txt}  2{com}.                 gen  l`var'=ln(`var'/100)
+{txt}  3{com}.                 {c )-}
+{txt}(6,038 missing values generated)
+
+{com}.         
+.         // EXPENDITURES
+.         gen lq  = ln(cdiet*pall/pf)
+{txt}(508 missing values generated)
+
+{com}. 
+.         // YEAR COMPATIBLE WITH CHIP
+.         gen             year_cp = 1 if year == 1989 | year == 1991
+{txt}(18,324 missing values generated)
+
+{com}.         replace         year_cp = 2 if year == 1997 | year == 1993
+{txt}(5,608 real changes made)
+
+{com}.         replace         year_cp = 3 if year == 2004 | year == 2000
+{txt}(6,449 real changes made)
+
+{com}.         replace         year_cp = 4 if year == 2009 | year == 2006
+{txt}(6,267 real changes made)
+
+{com}.         
+.         * SAMPLE SELECTION
+.         keep if reside == 0                     // URBAN SAMPLE
+{txt}(16,585 observations deleted)
+
+{com}.         keep if age>=25 & age<=65
+{txt}(0 observations deleted)
+
+{com}.         keep if educ~=.
+{txt}(0 observations deleted)
+
+{com}.         keep if cdiet~=. & cdiet~=0
+{txt}(167 observations deleted)
+
+{com}.         count
+  {res}7,610
+{txt}
+{com}.  
+.     
+.         * GENERATE DUMMY VARIABLES
+.         tab coh,gen(cohd)                       // 1/2/3/4/5/6/7/8/9/10/11/12
+
+        {txt}coh {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          1 {c |}{res}          8        0.11        0.11
+{txt}          2 {c |}{res}        102        1.34        1.45
+{txt}          3 {c |}{res}        341        4.48        5.93
+{txt}          4 {c |}{res}        662        8.70       14.63
+{txt}          5 {c |}{res}      1,182       15.53       30.16
+{txt}          6 {c |}{res}      1,230       16.16       46.32
+{txt}          7 {c |}{res}      1,276       16.77       63.09
+{txt}          8 {c |}{res}        925       12.16       75.24
+{txt}          9 {c |}{res}        643        8.45       83.69
+{txt}         10 {c |}{res}        545        7.16       90.85
+{txt}         11 {c |}{res}        447        5.87       96.73
+{txt}         12 {c |}{res}        249        3.27      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}      7,610      100.00
+{txt}
+{com}.         tab educ, gen(edd)                      // 0/1/2
+
+       {txt}Education attainment {c |}      Freq.     Percent        Cum.
+{hline 28}{c +}{hline 35}
+               no education {c |}{res}        494        6.49        6.49
+{txt}below (including) 9th grade {c |}{res}      3,497       45.95       52.44
+{txt}            above 9th grade {c |}{res}      3,619       47.56      100.00
+{txt}{hline 28}{c +}{hline 35}
+                      Total {c |}{res}      7,610      100.00
+{txt}
+{com}.         tab region, gen(regd)           // 2/3/4/5
+
+     {txt}region {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          2 {c |}{res}      1,397       18.36       18.36
+{txt}          3 {c |}{res}      1,666       21.89       40.25
+{txt}          4 {c |}{res}      3,628       47.67       87.92
+{txt}          5 {c |}{res}        919       12.08      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}      7,610      100.00
+{txt}
+{com}.         tab kidcat, gen(kidd)           // 0/1/2/3
+
+     {txt}kidcat {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          0 {c |}{res}      4,139       54.39       54.39
+{txt}          1 {c |}{res}      2,816       37.00       91.39
+{txt}          2 {c |}{res}        589        7.74       99.13
+{txt}          3 {c |}{res}         66        0.87      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}      7,610      100.00
+{txt}
+{com}.         tab year_cp, gen(yrd)           // 1/2/3/4
+
+    {txt}year_cp {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          1 {c |}{res}      1,956       25.70       25.70
+{txt}          2 {c |}{res}      1,721       22.61       48.32
+{txt}          3 {c |}{res}      1,933       25.40       73.72
+{txt}          4 {c |}{res}      2,000       26.28      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}      7,610      100.00
+{txt}
+{com}.  
+.  foreach var in lx1 lx2 lx3     {c -(}
+{txt}  2{com}.   * MERGE DATA SETS
+.   merge m:1 mergeid using "CHIP-dta-files---final\b_`var'.dta"
+{txt}  3{com}.   drop _merge
+{txt}  4{com}.   
+.   * IMPUTATION
+.         #delimit;
+{txt}delimiter now ;
+{com}.         gen `var'_imp=(lq-(
+>         b1_age[1]    *age+
+>         b1_age2[1]   *age2+
+>         
+>         b1_lpf[1]    *lpf+
+>         b1_lpalc[1]  *lpalc+
+>         b1_lpfutil[1]*lpfutil+
+>         
+>         b1_cohd2[1]  *cohd2+
+>         b1_cohd3[1]  *cohd3+
+>         b1_cohd4[1]  *cohd4+
+>         b1_cohd5[1]  *cohd5+
+>         b1_cohd6[1]  *cohd6+
+>         b1_cohd7[1]  *cohd7+
+>         b1_cohd8[1]  *cohd8+
+>         b1_cohd9[1]  *cohd9+
+>         b1_cohd10[1] *cohd10+
+>         b1_cohd11[1] *cohd11+
+>         b1_cohd12[1] *cohd12+
+>         
+>         b1_edd2[1]   *edd2+
+>         b1_edd3[1]   *edd3+ 
+>         b1_regd2[1]  *regd2+ 
+>         b1_regd3[1]  *regd3+ 
+>         b1_regd4[1]  *regd4+
+>         
+>         b1_kidd2[1]   *kidd2+
+>         b1_kidd3[1]   *kidd3+
+>         b1_kidd4[1]   *kidd4+
+>         
+>         b1_cons[1]  ))
+>         /(b1_lx[1]+b1_lxed2[1]*edd2+b1_lxed3[1]*edd3+b1_lxkid2[1]*kidd2+b1_lxkid3[1]*kidd3+b1_lxkid4[1]*kidd4 + b1_lxyr2[1]*yrd2 + b1_lxyr3[1]*yrd3 + b1_lxyr4[1]*yrd4);
+{txt}  5{com}.         #delimit cr
+{txt}delimiter now cr
+{com}. 
+.   drop b1_*
+{txt}  6{com}.   
+.         * TABULATE
+.         table year_cp,            c(mean lq mean `var'_imp)
+{txt}  7{com}.         table year_cp ,           c(sd   lq sd   `var'_imp)
+{txt}  8{com}.         table interview_year, c(mean lq mean `var'_imp)
+{txt}  9{com}.         table interview_year, c(sd   lq sd   `var'_imp)
+{txt} 10{com}. {c )-}
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}               0
+{txt}{col 5}matched{col 30}{res}           7,610{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{hline 10}{c TT}{hline 29}
+  year_cp {c |}      mean(lq)  mean(lx1_imp)
+{hline 10}{c +}{hline 29}
+        1 {c |}      {res}6.868837        6.62723
+        {txt}2 {c |}      {res}7.038816       6.936343
+        {txt}3 {c |}      {res}6.965572       7.107975
+        {txt}4 {c |}        {res}6.7889       6.943715
+{txt}{hline 10}{c BT}{hline 29}
+
+{hline 10}{c TT}{hline 25}
+  year_cp {c |}      sd(lq)  sd(lx1_imp)
+{hline 10}{c +}{hline 25}
+        1 {c |}    {res}.4971584     .5895512
+        {txt}2 {c |}    {res}.5422337     .6700463
+        {txt}3 {c |}    {res}.6277205     .7473593
+        {txt}4 {c |}    {res}.6712708     .8045645
+{txt}{hline 10}{c BT}{hline 25}
+
+{hline 10}{c TT}{hline 29}
+Survey    {c |}
+Year      {c |}      mean(lq)  mean(lx1_imp)
+{hline 10}{c +}{hline 29}
+     1989 {c |}      {res}6.744956       6.506616
+     {txt}1991 {c |}      {res}7.003837       6.758668
+     {txt}1993 {c |}      {res}7.025674       6.655066
+     {txt}1997 {c |}      {res}7.050072       7.177264
+     {txt}2000 {c |}      {res}6.982956       7.091747
+     {txt}2004 {c |}      {res}6.947694       7.124664
+     {txt}2006 {c |}      {res}6.773077       6.790074
+     {txt}2009 {c |}       {res}6.80485       7.098588
+{txt}{hline 10}{c BT}{hline 29}
+
+{hline 10}{c TT}{hline 25}
+Survey    {c |}
+Year      {c |}      sd(lq)  sd(lx1_imp)
+{hline 10}{c +}{hline 25}
+     1989 {c |}    {res}.4636229     .5582473
+     {txt}1991 {c |}    {res}.4975535     .5949251
+     {txt}1993 {c |}    {res}.5219338     .5966607
+     {txt}1997 {c |}    {res}.5590705     .6349083
+     {txt}2000 {c |}    {res}.6324134     .7465547
+     {txt}2004 {c |}    {res}.6226832     .7482105
+     {txt}2006 {c |}     {res}.691241     .8133141
+     {txt}2009 {c |}    {res}.6504779     .7654254
+{txt}{hline 10}{c BT}{hline 25}
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}               0
+{txt}{col 5}matched{col 30}{res}           7,610{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{hline 10}{c TT}{hline 29}
+  year_cp {c |}      mean(lq)  mean(lx2_imp)
+{hline 10}{c +}{hline 29}
+        1 {c |}      {res}6.868837       6.693431
+        {txt}2 {c |}      {res}7.038816       7.202315
+        {txt}3 {c |}      {res}6.965572       7.195101
+        {txt}4 {c |}        {res}6.7889       7.050015
+{txt}{hline 10}{c BT}{hline 29}
+
+{hline 10}{c TT}{hline 25}
+  year_cp {c |}      sd(lq)  sd(lx2_imp)
+{hline 10}{c +}{hline 25}
+        1 {c |}    {res}.4971584     .5650511
+        {txt}2 {c |}    {res}.5422337     .6504251
+        {txt}3 {c |}    {res}.6277205     .7288283
+        {txt}4 {c |}    {res}.6712708     .7844961
+{txt}{hline 10}{c BT}{hline 25}
+
+{hline 10}{c TT}{hline 29}
+Survey    {c |}
+Year      {c |}      mean(lq)  mean(lx2_imp)
+{hline 10}{c +}{hline 29}
+     1989 {c |}      {res}6.744956       6.569819
+     {txt}1991 {c |}      {res}7.003837       6.828137
+     {txt}1993 {c |}      {res}7.025674       6.983232
+     {txt}1997 {c |}      {res}7.050072       7.389966
+     {txt}2000 {c |}      {res}6.982956       7.186108
+     {txt}2004 {c |}      {res}6.947694       7.204348
+     {txt}2006 {c |}      {res}6.773077       6.932129
+     {txt}2009 {c |}       {res}6.80485       7.168849
+{txt}{hline 10}{c BT}{hline 29}
+
+{hline 10}{c TT}{hline 25}
+Survey    {c |}
+Year      {c |}      sd(lq)  sd(lx2_imp)
+{hline 10}{c +}{hline 25}
+     1989 {c |}    {res}.4636229     .5331602
+     {txt}1991 {c |}    {res}.4975535     .5682952
+     {txt}1993 {c |}    {res}.5219338     .5964214
+     {txt}1997 {c |}    {res}.5590705     .6362125
+     {txt}2000 {c |}    {res}.6324134     .7285887
+     {txt}2004 {c |}    {res}.6226832     .7293415
+     {txt}2006 {c |}     {res}.691241     .7990627
+     {txt}2009 {c |}    {res}.6504779     .7514266
+{txt}{hline 10}{c BT}{hline 25}
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}               0
+{txt}{col 5}matched{col 30}{res}           7,610{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{hline 10}{c TT}{hline 29}
+  year_cp {c |}      mean(lq)  mean(lx3_imp)
+{hline 10}{c +}{hline 29}
+        1 {c |}      {res}6.868837       6.597681
+        {txt}2 {c |}      {res}7.038816       7.036008
+        {txt}3 {c |}      {res}6.965572       7.098061
+        {txt}4 {c |}        {res}6.7889       6.780694
+{txt}{hline 10}{c BT}{hline 29}
+
+{hline 10}{c TT}{hline 25}
+  year_cp {c |}      sd(lq)  sd(lx3_imp)
+{hline 10}{c +}{hline 25}
+        1 {c |}    {res}.4971584     .6631116
+        {txt}2 {c |}    {res}.5422337     .7513228
+        {txt}3 {c |}    {res}.6277205     .9139402
+        {txt}4 {c |}    {res}.6712708      .984608
+{txt}{hline 10}{c BT}{hline 25}
+
+{hline 10}{c TT}{hline 29}
+Survey    {c |}
+Year      {c |}      mean(lq)  mean(lx3_imp)
+{hline 10}{c +}{hline 29}
+     1989 {c |}      {res}6.744956       6.470317
+     {txt}1991 {c |}      {res}7.003837       6.736475
+     {txt}1993 {c |}      {res}7.025674       6.932914
+     {txt}1997 {c |}      {res}7.050072       7.124312
+     {txt}2000 {c |}      {res}6.982956       7.137665
+     {txt}2004 {c |}      {res}6.947694       7.057335
+     {txt}2006 {c |}      {res}6.773077       6.708963
+     {txt}2009 {c |}       {res}6.80485       6.853001
+{txt}{hline 10}{c BT}{hline 29}
+
+{hline 10}{c TT}{hline 25}
+Survey    {c |}
+Year      {c |}      sd(lq)  sd(lx3_imp)
+{hline 10}{c +}{hline 25}
+     1989 {c |}    {res}.4636229     .6295575
+     {txt}1991 {c |}    {res}.4975535     .6711764
+     {txt}1993 {c |}    {res}.5219338     .7201341
+     {txt}1997 {c |}    {res}.5590705     .7664708
+     {txt}2000 {c |}    {res}.6324134     .9072453
+     {txt}2004 {c |}    {res}.6226832     .9194714
+     {txt}2006 {c |}     {res}.691241     1.010202
+     {txt}2009 {c |}    {res}.6504779     .9531716
+{txt}{hline 10}{c BT}{hline 25}
+
+{com}. 
+. 
+. keep lq lx*_imp year_cp interview_year case_id
+{txt}
+{com}. compress
+  {txt}variable {bf}case_id{sf} was {bf}{res}float{sf}{txt} now {bf}{res}int{sf}
+  {txt}variable {bf}year_cp{sf} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}interview_year{sf} was {bf}{res}double{sf}{txt} now {bf}{res}int{sf}
+{txt}  (83,710 bytes saved)
+
+{com}. 
+. count
+  {res}7,610
+{txt}
+{com}. gen dataset = 1
+{txt}
+{com}. rename interview_year year
+{res}{txt}
+{com}. saveold "CHIP-dta-files---final\CHNSimp.dta",replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file CHIP-dta-files---final\CHNSimp.dta saved
+
+{com}. saveold "CHNS-dta-files---final\CHNSimp.dta",replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file CHNS-dta-files---final\CHNSimp.dta saved
+
+{com}. 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHNS-log\cr-CHNSimp.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 7 Jul 2020, 14:14:55
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

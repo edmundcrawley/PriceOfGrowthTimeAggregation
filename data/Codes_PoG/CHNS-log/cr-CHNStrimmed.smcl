@@ -1,0 +1,571 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHNS-log\cr-CHNStrimmed.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 7 Jul 2020, 14:09:55
+{txt}
+{com}.          
+.  use "CHNS-dta-files---final\CHNS-no-trim-final.dta", clear
+{txt}(SAVASTATA created this dataset on 03SEP2012)
+
+{com}. 
+.  drop anp* wf_gov sub_gov
+{txt}
+{com}. 
+. ********************
+. * Notes: all real values (in 2009 urban Liaoning yuan)
+. * HH Income side:       - ai (cfoodown is a part of ai)
+. *                                       - bi
+. *                                       - ci
+. *                                       - lmi
+. *                                       - sub_work (foodgift is a part of sub_work)
+. *                                       - sub_gvmt (sub_utility is a part of sub_gvmt)
+. *                                       - sub_coupon and sub_coupon_pw (two measures of food coupons: the former based on resale value and the latter based on price wedge.
+. *                                               In general the former is smaller than the latter)
+. *                                       - pi
+. *                                       - pt
+. * The net transfer, nt, would be sub_work + sub_gvmt + sub_coupon (or sub_coupon_pw) + pi + pt.
+. * HH Consumption side:  - cdiet: value of diet
+. *                                               - cfoodown: value of home grown food
+. *                                               - sub_coupon and sub_coupon_pw
+. *                                               - foodgift
+. *                                               - sub_utility
+. *                                               - cchildcare
+. *                                               - ptout
+. *                                               - cmed and cmedins
+. *                                               - cedu
+. *                                               - chouse
+. *                                               - cdurable
+. * The expenditure on food would be food expenditure = cdiet - cfoodown - sub_coupon (or sub_coupon_pw) - foodgift, with negative replaced by zero.
+. * I used sub_coupon. Using sub_coupon_pt would result in even higher growth rates of food expenditure in urban areas.
+. * If you want to substact foodgift from both sides of the budget, then substract foodgift from sub_work and don't substract it from cdiet.
+. **************************************************************************************************************
+. 
+. *******************************************
+. * SAMPLE SELECTION
+. *******************************************
+. * Keep head only
+.  replace relation2head=relation2head+1
+{txt}(31,020 real changes made)
+
+{com}.  label define A2relation2head 1 "head" 2 "spouse" 3 "father/mother" 4 "son/daughter" 5 "brother/sister" 6 "grandson(-in-law)/granddaughter(-in-law)"  ///
+>                                                          7 "mother-in-law/father-in-law" 8 "son-in-law/daughter-in-law" 9 "other relative" 10 "maid" 11 "other non-relative"
+{txt}
+{com}.  label values relation2head A2relation2head
+{txt}
+{com}.  keep if relation2head==1
+{txt}(0 observations deleted)
+
+{com}. 
+. * Age restrictions
+.  drop if (age<25 | age>65) 
+{txt}(2,681 observations deleted)
+
+{com}.  
+.  * Household size
+.  drop if hh_size>6 | hh_size<2
+{txt}(2,689 observations deleted)
+
+{com}.  
+.  ******************************************
+.  * RENAME SOME VARIABLES
+.  ******************************************
+.  * WAVE
+.     gen wave=1 if interview_year==1989
+{txt}(22,526 missing values generated)
+
+{com}. replace wave=2 if interview_year==1991
+{txt}(2,980 real changes made)
+
+{com}. replace wave=3 if interview_year==1993
+{txt}(2,845 real changes made)
+
+{com}. replace wave=4 if interview_year==1997
+{txt}(3,063 real changes made)
+
+{com}. replace wave=5 if interview_year==2000
+{txt}(3,493 real changes made)
+
+{com}. replace wave=6 if interview_year==2004
+{txt}(3,483 real changes made)
+
+{com}. replace wave=7 if interview_year==2006
+{txt}(3,383 real changes made)
+
+{com}. replace wave=8 if interview_year==2009
+{txt}(3,279 real changes made)
+
+{com}. gen     year = interview_year
+{txt}
+{com}. 
+. * COHORT
+.   gen cohort=interview_year-age
+{txt}
+{com}. 
+. * TRANSFER-RELATED VARIABLES
+. rename pt                               pritR
+{res}{txt}
+{com}. rename ptout                    pritG
+{res}{txt}
+{com}. rename marital          marital_status
+{res}{txt}
+{com}. gen     reside = 1 if urban == 0
+{txt}(8,064 missing values generated)
+
+{com}. replace reside = 0 if urban == 1
+{txt}(8,064 real changes made)
+
+{com}. label variable reside "0 Urban, 1 Rural"
+{txt}
+{com}. egen transfR_pub = rsum(sub_work sub_gvmt sub_coupon pi)  //Public  Transfers Received (note: sub_gvmt includes sub_utility)
+{txt}
+{com}. egen transfR_pri = rsum(pritR)                            //Private Transfers Received
+{txt}
+{com}. egen transfG_pri = rsum(pritG)                            //Private Transfers Given 
+{txt}
+{com}. 
+. * SORT THE DATA
+.  sort case_id wave               
+{txt}
+{com}. xtset case_id wave
+{res}{txt}{col 8}panel variable:  {res}case_id (unbalanced)
+{txt}{col 9}time variable:  {res}{col 25}wave, 1 to 8, but with gaps
+{txt}{col 17}delta:  {res}1 unit
+{txt}
+{com}. 
+. *******************************************
+. * CONVERT FROM NOMINAL TO REAL VARIABLES
+. *******************************************
+. **************************************************************************************************************
+. * Transform Chinese Yuan (Renminbi) (i.e, CNY) into 2009 USD. Our variables are already real CNY, so we use nominal exchange rates (source: World Bank)
+. 
+.         foreach var in ai bi ci lmi sub_work sub_gvmt sub_coupon sub_coupon_pw pi transfR_pub transfR_pri transfG_pri {c -(}
+{txt}  2{com}.                 replace `var'=`var'/6.8300
+{txt}  3{com}.                 {c )-}
+{txt}(13,112 real changes made)
+(4,047 real changes made)
+(1,996 real changes made)
+(12,163 real changes made)
+(7,215 real changes made)
+(3,917 real changes made)
+(3,184 real changes made)
+(3,183 real changes made)
+(3,450 real changes made)
+(10,464 real changes made)
+(7,778 real changes made)
+(16,769 real changes made)
+
+{com}. 
+.         foreach var in cdiet cfoodown foodgift sub_utility cchildcare cmed cmedins cedu chouse cdurable house_value downpay mortgage rent {c -(}
+{txt}  2{com}.                 replace `var'=`var'/6.8300
+{txt}  3{com}.                 {c )-}               
+{txt}(25,625 real changes made)
+(13,855 real changes made)
+(4,289 real changes made)
+(1,249 real changes made)
+(1,745 real changes made)
+(3,111 real changes made)
+(7,388 real changes made)
+(1,410 real changes made)
+(2,095 real changes made)
+(8,618 real changes made)
+(10,150 real changes made)
+(1,112 real changes made)
+(62 real changes made)
+(18,975 real changes made)
+
+{com}. ********************************************
+. * TRIMMING
+. ********************************************
+. *------------------------------------------------------------------------------------------------------------*  
+. *------------------------------------------------------------------------------------------------------------*
+. *                                               (A) HOUSEHOLD INCOME LEVEL                                                           *
+. *------------------------------------------------------------------------------------------------------------*
+. *------------------------------------------------------------------------------------------------------------*          
+.         
+. *------------------------------------------------------------------------------------------------------------*
+. *                                               (A1) TRIMMING INCOME (SUB)ITEMS (LEVEL)                                          *
+. *------------------------------------------------------------------------------------------------------------*
+. 
+.         * Trim level of income items 
+.         *-------------------------------------------------------        
+.         //       Notes: ai & bi can be positive or negative (we trim top and bottom 1%). 
+.         //              ci lmi sub_work sub_gvmt sub_coupon sub_coupon_pw pi transfR_pub transfR_pri transfG_pri are always positive, and we trim the top 1% and also bottom 1% excluding the zeros
+.         //                  Note that here transfG_pri takes positive values, two sections below we transform this into negative to compute net transfers.
+.         
+.         * Replace outliers by missing                                   
+.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 9 {c -(}
+{txt}  2{com}.                                                 foreach var in ai bi {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0, nq(100)                                 
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1, nq(100)                                                                         
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==100) &  wave==`xwave' & reside==1
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  1) &  wave==`xwave' & reside==1                                   
+{txt}  9{com}.                                                  drop p`xwave'_`var'Urban p`xwave'_`var'Rural                               
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.                 {c )-} 
+ wave1
+ wave2
+ wave3
+ wave4
+ wave5
+ wave6
+ wave7
+ wave8
+{txt}
+{com}. 
+.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 9 {c -(}
+{txt}  2{com}.                                                 foreach var in ci lmi sub_work sub_gvmt pi transfR_pub transfR_pri {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0 & `var'~=0, nq(100)        /*These items take only positive values and they can be zero: for this reason we trim very small non-zero values */                           
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==    1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  9{com}.                                                         drop p`xwave'_`var'Urban p`xwave'_`var'Rural                                
+{txt} 10{com}.                                                 {c )-} 
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.                 {c )-} 
+ wave1
+ wave2
+ wave3
+ wave4
+ wave5
+ wave6
+ wave7
+ wave8
+{txt}
+{com}. 
+.         * Notes: transfG_pri is not available for wave 8.
+.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 8 {c -(}
+{txt}  2{com}.                                                 foreach var in transfG_pri {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0 & `var'~=0, nq(100)        /*These items take only positive values and they can be zero: for this reason we trim very small non-zero values */                           
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==    1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  9{com}.                                                         drop p`xwave'_`var'Urban p`xwave'_`var'Rural                                
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.                 {c )-} 
+ wave1
+ wave2
+ wave3
+ wave4
+ wave5
+ wave6
+ wave7
+{txt}
+{com}. 
+.         * Notes: sub_coupon & sub_coupon_pw are available only for wave 1, 2 and 3.
+.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 4 {c -(}
+{txt}  2{com}.                                                 foreach var in sub_coupon sub_coupon_pw {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0 & `var'~=0, nq(100)        /*These items take only positive values and they can be zero: for this reason we trim very small non-zero values */                           
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==    1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  9{com}.                                                         drop p`xwave'_`var'Urban p`xwave'_`var'Rural                                
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.                 {c )-} 
+ wave1
+ wave2
+ wave3
+{txt}
+{com}. 
+. *------------------------------------------------------------------------------------------------------------*
+. *                                               (A2) AGGREGATING AND TRIMMING HOUSEHOLD INCOME (LEVEL)                           *
+. *------------------------------------------------------------------------------------------------------------*
+. 
+.         * DEFINE HOUSEHOLD INCOME:
+.                 // EARNINGS
+.                 egen income0 = rsum(ai bi ci lmi)               // IN THE OLD CODE
+{txt}
+{com}.                 *egen income0 = rsum(ai bi ci lmi), missing
+.                 // DISPOSABLE INCOME (EARNINGS + PRIVATE TRANSFERS RECEIVED + PUBLIC TRANSFERS RECEIVED)
+.                 egen income1 = rsum(income0 transfR_pub transfR_pri) if income0~=.
+{txt}
+{com}.                 // EARNINGS + PRIVATE TRANSFERS RECEIVED
+.                 egen income2 = rsum(income0 transfR_pri) if income0~=.
+{txt}
+{com}.                 // EARNINGS + PUBLIC TRANSFERS RECEIVED
+.                 egen income3 = rsum(income0 transfR_pub) if income0~=.
+{txt}
+{com}.                 // EARNINGS + NON-IN-KIND PUBLIC TRANSFERS RECEIVED
+.                 gen  nsub_coupon = -sub_coupon
+{txt}(22,441 missing values generated)
+
+{com}.                 gen  nsub_work   = -sub_work
+{txt}(16,954 missing values generated)
+
+{com}.                 egen income4 = rsum(income3 nsub_coupon nsub_work) if income3~=.        
+{txt}
+{com}. 
+.         * Trim level of household income
+.         *-------------------------------------------------------        
+.         drop if income1==0      
+{txt}(1,288 observations deleted)
+
+{com}.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 9 {c -(}
+{txt}  2{com}.                                                 foreach var in income0 income1 income2 income3 income4 {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0, nq(100)                         /*all these items can take negative and postivie values */                                       
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1, nq(100)                                                                         
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==100) &  wave==`xwave' & reside==1
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==1)   &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==1)   &  wave==`xwave' & reside==1
+{txt}  9{com}.                                                         drop p`xwave'_`var'Urban p`xwave'_`var'Rural                                
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.         {c )-} 
+ wave1
+ wave2
+ wave3
+ wave4
+ wave5
+ wave6
+ wave7
+ wave8
+{txt}
+{com}. 
+. *------------------------------------------------------------------------------------------------------------*  
+. *------------------------------------------------------------------------------------------------------------*
+. *                                               (B) HOUSEHOLD CONSUMPTION LEVEL                                                  *
+. *------------------------------------------------------------------------------------------------------------*
+. *------------------------------------------------------------------------------------------------------------*          
+.         
+. *------------------------------------------------------------------------------------------------------------*
+. *                                               (B1) TRIMMING CONSUMPTION (SUB)ITEMS (LEVEL)                                     *
+. *------------------------------------------------------------------------------------------------------------*
+.         
+.         * Trim level of consumption items 
+.         *-------------------------------------------------------        
+.         //       Notes: All these items take positive values, for that reason we trim the top 1% and also the bottom 1% of strictly positive values.
+.         * Replace outliers by missing
+.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 9 {c -(}
+{txt}  2{com}.                                                 foreach var in cdiet foodgift cdurable rent  {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0 & `var'~=0, nq(100)                                      
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==    1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  9{com}.                                                  drop p`xwave'_`var'Urban p`xwave'_`var'Rural                               
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.         {c )-} 
+ wave1
+ wave2
+ wave3
+ wave4
+ wave5
+ wave6
+ wave7
+ wave8
+{txt}
+{com}. 
+.         * For foodown, i.e., food produced at home (farm), we only trim the rural by percentiles because there are few observations in urban areas (less than 100).
+.         * table wave reside if cfoodown~=0, c(n cfoodown) 
+.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 9 {c -(}
+{txt}  2{com}.                                                 foreach var in cfoodown {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  4{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  6{com}.                                                  drop p`xwave'_`var'Rural                                   
+{txt}  7{com}.                                                 {c )-}
+{txt}  8{com}.                                                 display  " wave" `xwave'
+{txt}  9{com}.                                                 local     xwave = `xwave'+1
+{txt} 10{com}.         {c )-}
+ wave1
+ wave2
+ wave3
+ wave4
+ wave5
+ wave6
+ wave7
+ wave8
+{txt}
+{com}.         local  xwave  = 4
+{txt}
+{com}.         while `xwave' < 9 {c -(}
+{txt}  2{com}.                                                 foreach var in sub_utility {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0 & `var'~=0, nq(100)                                      
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==    1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  9{com}.                                                  drop p`xwave'_`var'Urban p`xwave'_`var'Rural                               
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.         {c )-}                               
+ wave4
+ wave5
+ wave6
+ wave7
+ wave8
+{txt}
+{com}.         local  xwave  = 7
+{txt}
+{com}.         while `xwave' < 8 {c -(}
+{txt}  2{com}.                                                 foreach var in cedu {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0 & `var'~=0, nq(100)                                      
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==    1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  9{com}.                                                  drop p`xwave'_`var'Urban p`xwave'_`var'Rural                               
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.         {c )-} 
+ wave7
+{txt}
+{com}. 
+. *------------------------------------------------------------------------------------------------------------*
+. *                                               (B2) AGGREGATING AND TRIMMING HOUSEHOLD CONSUMPTION (LEVEL)                          *
+. *------------------------------------------------------------------------------------------------------------*
+. 
+.         * DEFINE HOUSEHOLD CONSUMPTION:
+.         gen     ncfoodown = -cfoodown
+{txt}(10,686 missing values generated)
+
+{com}.         gen     nfoodgift = -foodgift
+{txt}(17,900 missing values generated)
+
+{com}.         gen     nsub_utility = -sub_utility
+{txt}(17,597 missing values generated)
+
+{com}.         egen    food_exp = rsum(cdiet ncfoodown nsub_coupon nfoodgift) if cdiet~=. & cdiet~=0                           // CASH EXPENDITURE ON FOOD
+{txt}(508 missing values generated)
+
+{com}.         replace food_exp=0 if food_exp<0
+{txt}(2,130 real changes made)
+
+{com}.         gen             consumption0 = cdiet
+{txt}(487 missing values generated)
+
+{com}.         egen    consumption1 = rsum(cdiet cmed cmedins cdurable sub_utility) if cdiet~=. & cdiet~=0             // CONSUMPTION OF CONSISTENTLY SURVEYED ITEMS
+{txt}(508 missing values generated)
+
+{com}.         egen    consumption2 = rsum(consumption1 nsub_coupon nsub_utility)       if consumption1~=.                     // CONSUMPTION OF CONSISTENTLY SURVEYED ITEMS EXCEPT IN-KIND PUBLIC TRANSFERS
+{txt}(508 missing values generated)
+
+{com}.         replace consumption2 =. if consumption2<0
+{txt}(4 real changes made, 4 to missing)
+
+{com}.         egen    consumption6 = rsum(cdiet sub_utility)                                           if cdiet~=. & cdiet~=0         // CONSUMPTION OF CONSISTENTLY SURVEYED ITEMS: FOOD AND UTILITY
+{txt}(508 missing values generated)
+
+{com}.         egen    consumption7 = rsum(cdiet sub_utility cmed cmedins)                      if cdiet~=. & cdiet~=0         // CONSUMPTION OF CONSISTENTLY SURVEYED ITEMS: FOOD, UTILITY AND HEALTH
+{txt}(508 missing values generated)
+
+{com}.         egen    consumption8 = rsum(cdiet cmed cmedins cdurable sub_utility rent) if cdiet~=. & cdiet~=0 & rent~=.              // CONSUMPTION OF CONSISTENTLY SURVEYED ITEMS PLUS (IMPUTED) RENT FROM HOUSING SERVICE
+{txt}(6,692 missing values generated)
+
+{com}.         * Trim level of household consumption
+.         *-------------------------------------------------------        
+.         drop if consumption1==0 
+{txt}(0 observations deleted)
+
+{com}.         local  xwave  = 1
+{txt}
+{com}.         while `xwave' < 9 {c -(}
+{txt}  2{com}.                                                 foreach var in food_exp consumption1 consumption2 consumption6 consumption7 consumption8 {c -(}
+{txt}  3{com}.                                                         xtile p`xwave'_`var'Urban = `var' if wave==`xwave' & reside==0 & `var'~=0, nq(100)                                      
+{txt}  4{com}.                                                         xtile p`xwave'_`var'Rural = `var' if wave==`xwave' & reside==1 & `var'~=0, nq(100)                                                                              
+{txt}  5{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==  100) &  wave==`xwave' & reside==0
+{txt}  6{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==  100) &  wave==`xwave' & reside==1                                         
+{txt}  7{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Urban==    1) &  wave==`xwave' & reside==0
+{txt}  8{com}.                                                         qui replace `var'=. if (p`xwave'_`var'Rural==    1) &  wave==`xwave' & reside==1        
+{txt}  9{com}.                                                         drop p`xwave'_`var'Urban p`xwave'_`var'Rural                                
+{txt} 10{com}.                                                 {c )-}
+{txt} 11{com}.                                                 display  " wave" `xwave'
+{txt} 12{com}.                                                 local     xwave = `xwave'+1
+{txt} 13{com}.         {c )-} 
+ wave1
+ wave2
+ wave3
+ wave4
+ wave5
+ wave6
+ wave7
+ wave8
+{txt}
+{com}. 
+.         label var income0 "earnings"
+{txt}
+{com}.         label var income1 "disposable income"
+{txt}
+{com}.         label var income2 "earnings+private transfers"
+{txt}
+{com}.         label var income3 "earnings+public transfers"
+{txt}
+{com}.         label var income4 "earnings+cash public transfers"
+{txt}
+{com}.         
+.         label var food_exp              "cash expenditure onfood"
+{txt}
+{com}.         label var consumption0  "food"
+{txt}
+{com}.         label var consumption1  "all items consistent in chns"
+{txt}
+{com}.         label var consumption2  "all items consistent in chns minus in-kind transfers"
+{txt}
+{com}.         label var consumption6  "food and utility consistent in chns"
+{txt}
+{com}.         label var consumption7  "food, utility and health consistent in chns"
+{txt}
+{com}.         label var consumption8  "all items consistent in chns plus (imputed) rent from housing service"
+{txt}
+{com}.         
+. drop ncfoodown nsub_coupon nfoodgift nsub_utility nsub_work
+{txt}
+{com}. 
+.  saveold "CHNS-dta-files---final\CHNStrimmed.dta", replace
+{txt}(saving in Stata 13 format)
+{p 0 6 2}
+(FYI, {bf:saveold} has options
+{bf:version(12)} and {bf:version(11)} that
+write files in older Stata formats)
+{p_end}
+file CHNS-dta-files---final\CHNStrimmed.dta saved
+
+{com}.  
+.  
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}\\msulx1\msu-home\m1rxk02\Edmund\time-aggregation\Papers\ThePriceOfGrowth\data\Codes_PoG\CHNS-log\cr-CHNStrimmed.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 7 Jul 2020, 14:14:03
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
